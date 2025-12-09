@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sweetify - Toko Roti Online</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+        .notif-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .icon-btn {
+            position: relative;
+        }
+        
+        .fav-count {
+            background-color: #dc3545;
+            color: white;
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 4px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            color: white;
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            padding: 0;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--color-text);
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--color-gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        .form-control::placeholder {
+            color: #999;
+        }
+        
+        /* Product Detail Modal */
+        .product-detail-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            padding: 24px;
+        }
+        
+        .product-detail-image {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #f5f5f5;
+            aspect-ratio: 1;
+        }
+        
+        .product-detail-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .product-detail-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .product-detail-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin: 0 0 12px 0;
+        }
+        
+        .product-detail-rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .product-detail-rating i {
+            color: #ffc107;
+            font-size: 18px;
+        }
+        
+        .rating-value {
+            font-size: 16px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .product-detail-price {
+            font-size: 32px;
+            font-weight: 700;
+            color: #a0522d;
+            margin-bottom: 16px;
+        }
+        
+        .product-detail-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            font-size: 15px;
+        }
+        
+        .product-detail-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .btn-icon-detail {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            border: 2px solid #ddd;
+            background: white;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .btn-favorite-detail:hover {
+            border-color: #ff4081;
+            color: #ff4081;
+            transform: scale(1.1);
+        }
+        
+        .btn-favorite-detail.favorited {
+            background: #ff4081;
+            color: white;
+            border-color: #ff4081;
+        }
+        
+        .btn-add-cart-detail {
+            flex: 1;
+            padding: 14px 24px;
+            background: #a0522d;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-add-cart-detail:hover {
+            background: #8b4513;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+        }
+        
+        .product-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .tab-btn {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #666;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tab-btn:hover {
+            color: #a0522d;
+        }
+        
+        .tab-btn.active {
+            color: #a0522d;
+            border-bottom-color: #a0522d;
+        }
+        
+        .tab-content {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 12px;
+            min-height: 200px;
+        }
+        
+        .tab-pane {
+            display: none;
+        }
+        
+        .tab-pane.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-pane h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 12px 0;
+        }
+        
+        .tab-pane p {
+            color: #666;
+            line-height: 1.6;
+            margin: 0;
+            font-size: 14px;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .product-detail-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 16px;
+            }
+            
+            .product-detail-image {
+                max-height: 300px;
+            }
+            
+            .product-detail-title {
+                font-size: 22px;
+            }
+            
+            .product-detail-price {
+                font-size: 26px;
+            }
+            
+            .tab-btn {
+                font-size: 13px;
+                padding: 10px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-wrapper">
+                    <img src="Screenshot 2025-12-04 131752.png" alt="Sweetify Logo" class="logo-image">
+                    <h1 class="logo">Sweetify</h1>
+                </div>
+                
+                <div class="header-actions">
+                    <div id="auth-status">
+                        <button id="login-btn" class="btn-login">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </button>
+                        <div id="user-menu" class="user-menu hidden">
+                            <button class="user-avatar" id="user-avatar">
+                                <span id="user-initials">U</span>
+                            </button>
+                            <div class="dropdown-menu hidden" id="user-dropdown">
+                                <div class="dropdown-item" id="user-info">
+                                    <i class="fas fa-user"></i>
+                                    <span id="user-name">User</span>
+                                </div>
+                                <div class="dropdown-item" onclick="window.location.href='profile.html'">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>Profil Saya</span>
+                                </div>
+                                <div class="dropdown-item" onclick="window.location.href='orders.html'">
+                                    <i class="fas fa-receipt"></i>
+                                    <span>Pesanan Saya</span>
+                                </div>
+                                <div class="dropdown-item" id="logout-btn">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Logout</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="icon-btn" id="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    
+                    <button class="icon-btn" id="notif-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notif-badge hidden" id="notif-badge">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            
+            <div class="search-container hidden" id="search-container">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Cari produk...">
+                    <button class="btn-close" id="search-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <section class="categories-section">
+                <h2 class="section-title">Jelajahi Kategori</h2>
+                <div class="categories-container">
+                    <button class="category-btn active" data-category="All">
+                        <i class="fas fa-th"></i> Semua
+                    </button>
+                    <button class="category-btn" data-category="Favorites">
+                        <i class="fas fa-heart"></i> Favorit
+                        <span class="fav-count" id="fav-count">0</span>
+                    </button>
+                    <button class="category-btn" data-category="Cake">
+                        <i class="fas fa-birthday-cake"></i> Cake
+                    </button>
+                    <button class="category-btn" data-category="Cupcake">
+                        <i class="fas fa-cupcake"></i> Cupcake
+                    </button>
+                    <button class="category-btn" data-category="Tart">
+                        <i class="fas fa-cookie"></i> Tart
+                    </button>
+                    <button class="category-btn" data-category="Brownies">
+                        <i class="fas fa-square"></i> Brownies
+                    </button>
+                    <button class="category-btn" data-category="Cookies">
+                        <i class="fas fa-cookie-bite"></i> Cookies
+                    </button>
+                </div>
+            </section>
+
+            <section class="products-section">
+                <h2 class="section-title" id="products-title">Semua Produk</h2>
+                <div class="products-grid" id="products-grid"></div>
+                <div class="loading" id="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Memuat produk...
+                </div>
+                <div class="error-message hidden" id="error-message">
+                    Gagal memuat produk. Silakan coba lagi.
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <button class="floating-cart-btn hidden" id="floating-cart-btn">
+        <i class="fas fa-shopping-bag"></i>
+        <span class="cart-badge" id="cart-badge">0</span>
+    </button>
+
+    <div class="modal-overlay hidden" id="cart-modal">
+        <div class="modal-content cart-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-shopping-bag"></i> Keranjang Saya</h2>
+                <button class="btn-close" id="close-cart">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="cart-items">
+                    <p class="empty-cart">Keranjang Anda masih kosong</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="cart-total">
+                    <span>Total:</span>
+                    <span class="total-amount" id="cart-total">Rp 0</span>
+                </div>
+                <button class="btn-primary btn-checkout" id="checkout-btn">
+                    <i class="fas fa-credit-card"></i> Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="product-modal">
+        <div class="modal-content product-modal">
+            <button class="btn-close modal-close" id="close-product">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="product-detail" id="product-detail"></div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item active">
+            <i class="fas fa-home"></i>
+            <span>Beranda</span>
+        </a>
+        <a href="#" class="nav-item" id="nav-cart">
+            <div class="nav-icon-wrapper">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="nav-badge hidden" id="nav-cart-badge">0</span>
+            </div>
+            <span>Keranjang</span>
+        </a>
+        <a href="orders.html" class="nav-item">
+            <i class="fas fa-receipt"></i>
+            <span>Pesanan</span>
+        </a>
+        <a href="profile.html" class="nav-item" id="nav-profile">
+            <i class="fas fa-user"></i>
+            <span>Akun</span>
+        </a>
+    </nav>
+
+    <div class="modal-overlay" id="auth-modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h2 id="auth-title">Login</h2>
+                <button class="btn-close" onclick="closeAuthModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="login-form" onsubmit="handleLogin(event)" style="display: block;">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="login-email" class="form-control" placeholder="nama@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="login-password" class="form-control" placeholder="Masukkan password" required>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 8px;">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                </form>
+                
+                <form id="register-form" onsubmit="handleRegister(event)" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Nama Lengkap</label>
+                        <input type="text" id="register-name" class="form-control" placeholder="Nama lengkap Anda" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="register-email" class="form-control" placeholder="nama@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="register-password" class="form-control" placeholder="Minimal 6 karakter" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Konfirmasi Password</label>
+                        <input type="password" id="register-confirm-password" class="form-control" placeholder="Ulangi password" required>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 8px;">
+                        <i class="fas fa-user-plus"></i> Daftar
+                    </button>
+                </form>
+                
+                <div style="text-align: center; margin-top: 20px; font-size: 14px; color: #666;">
+                    <p id="auth-toggle-text">
+                        Belum punya akun? <a href="#" onclick="toggleAuthForm(); return false;" style="color: #a0522d; font-weight: 500;">Daftar di sini</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast hidden" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Success</span>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/cart.js"></script>
+    
+    <script>
+        let allProducts = [];
+        let selectedCategory = 'All';
+        let favorites = [];
+
+        function getMockProducts() {
+            return [
+                { id: 'p1', name: 'Strawberry Dream Cake', price: 55000, image_url: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=400', rating: 4.5, category: 'Tart', stock: 10, description: 'Tart pastry crispy dengan custard dan strawberry segar', is_available: true },
+                { id: 'p2', name: 'Chocolate Chip Cookies', price: 33000, image_url: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=400', rating: 4.8, category: 'Cookies', stock: 20, description: 'Cookies klasik dengan chocolate chips melimpah', is_available: true },
+                { id: 'p3', name: 'Red Velvet Cupcake', price: 28000, image_url: 'https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=400', rating: 4.9, category: 'Cupcake', stock: 15, description: 'Cupcake red velvet dengan cream cheese frosting', is_available: true },
+                { id: 'p4', name: 'Fudgy Brownies Box', price: 43000, image_url: 'https://images.unsplash.com/photo-1607920591413-4ec007e70023?w=400', rating: 4.9, category: 'Brownies', stock: 12, description: 'Brownies cokelat super fudgy', is_available: true },
+                { id: 'p5', name: 'Black Forest Cake', price: 90000, image_url: 'https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=400', rating: 4.8, category: 'Cake', stock: 8, description: 'Kue black forest dengan cherry dan whipped cream', is_available: true },
+                { id: 'p6', name: 'Vanilla Cupcake', price: 22000, image_url: 'https://images.unsplash.com/photo-1599785209707-a456fc1337bb?w=400', rating: 4.6, category: 'Cupcake', stock: 18, description: 'Cupcake vanilla klasik dengan buttercream', is_available: true },
+                { id: 'p7', name: 'Chocolate Fudge Cake', price: 88000, image_url: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400', rating: 4.9, category: 'Cake', stock: 10, description: 'Kue cokelat super rich dengan fudge frosting', is_available: true },
+                { id: 'p8', name: 'Lemon Tart', price: 38000, image_url: 'https://images.unsplash.com/photo-1519915212116-7cfef71f1d3e?w=400', rating: 4.7, category: 'Tart', stock: 14, description: 'Tart lemon segar dengan lemon curd', is_available: true },
+            ];
+        }
+
+        function loadFavorites() {
+            const user = getCurrentUser();
+            if (!user) {
+                favorites = [];
+                updateFavoritesCount();
+                return;
+            }
+            
+            const favKey = `sweetify_favorites_${user.id}`;
+            const stored = localStorage.getItem(favKey);
+            favorites = stored ? JSON.parse(stored) : [];
+            updateFavoritesCount();
+        }
+
+        function saveFavorites() {
+            const user = getCurrentUser();
+            if (!user) return;
+            
+            const favKey = `sweetify_favorites_${user.id}`;
+            localStorage.setItem(favKey, JSON.stringify(favorites));
+            updateFavoritesCount();
+        }
+
+        function updateFavoritesCount() {
+            const countEl = document.getElementById('fav-count');
+            if (countEl) {
+                countEl.textContent = favorites.length;
+                countEl.style.display = favorites.length > 0 ? 'inline-block' : 'none';
+            }
+        }
+
+        async function fetchProducts() {
+            const loadingEl = document.getElementById('loading');
+            const gridEl = document.getElementById('products-grid');
+            
+            if (loadingEl) loadingEl.classList.remove('hidden');
+            if (gridEl) gridEl.innerHTML = '';
+            
+            try {
+                if (typeof supabase === 'undefined') {
+                    allProducts = getMockProducts();
+                    localStorage.setItem('sweetify_products', JSON.stringify(allProducts));
+                    renderProducts();
+                    return;
+                }
+
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .eq('is_available', true)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    allProducts = data;
+                    localStorage.setItem('sweetify_products', JSON.stringify(data));
+                } else {
+                    allProducts = getMockProducts();
+                    localStorage.setItem('sweetify_products', JSON.stringify(allProducts));
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                allProducts = getMockProducts();
+                localStorage.setItem('sweetify_products', JSON.stringify(allProducts));
+            } finally {
+                if (loadingEl) loadingEl.classList.add('hidden');
+                loadFavorites();
+                renderProducts();
+            }
+        }
+
+        function renderProducts(searchQuery = '') {
+            const gridEl = document.getElementById('products-grid');
+            const titleEl = document.getElementById('products-title');
+            
+            if (!gridEl) return;
+            
+            let filtered = [...allProducts];
+            
+            if (selectedCategory === 'Favorites') {
+                filtered = allProducts.filter(p => favorites.includes(p.id));
+                if (titleEl) titleEl.textContent = '❤️ Produk Favorit';
+            } else if (selectedCategory && selectedCategory !== 'All') {
+                filtered = filtered.filter(p => p.category === selectedCategory);
+                if (titleEl) titleEl.textContent = selectedCategory;
+            } else {
+                if (titleEl) titleEl.textContent = 'Semua Produk';
+            }
+            
+            if (searchQuery) {
+                filtered = filtered.filter(p => 
+                    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+            }
+            
+            gridEl.innerHTML = '';
+            
+            if (filtered.length === 0) {
+                const emptyIcon = selectedCategory === 'Favorites' ? 'fa-heart' : 'fa-box-open';
+                const emptyMsg = selectedCategory === 'Favorites' 
+                    ? 'Belum ada produk favorit.<br><small style="font-size: 14px;">Klik ❤️ pada produk untuk menambahkan ke favorit!</small>'
+                    : 'Tidak ada produk ditemukan';
+                    
+                gridEl.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
+                        <i class="fas ${emptyIcon}" style="font-size: 64px; color: #ccc; margin-bottom: 16px;"></i>
+                        <p style="color: #666; font-size: 16px;">${emptyMsg}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            filtered.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                
+                const isFav = favorites.includes(product.id);
+                const stars = generateStars(product.rating || 4.5);
+                
+                card.innerHTML = `
+                    <img src="${product.image_url}" 
+                         alt="${product.name}" 
+                         class="product-image"
+                         onerror="this.src='https://via.placeholder.com/200x200/F5DEB3/8B4513?text=Sweetify'">
+                    <div class="product-info">
+                        <h3 class="product-name">${product.name}</h3>
+                        <div class="product-rating">
+                            ${stars}
+                            <span>${product.rating || 4.5}</span>
+                        </div>
+                        <p class="product-price">${formatCurrency(product.price)}</p>
+                        <div class="product-actions">
+                            <button class="btn-icon btn-favorite ${isFav ? 'favorited' : ''}" 
+                                    onclick="event.stopPropagation(); toggleFavorite('${product.id}')">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                            <button class="btn-add-cart" onclick="event.stopPropagation(); addToCart('${product.id}')">
+                                <i class="fas fa-plus"></i> Tambah
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                card.addEventListener('click', (e) => {
+                    if (!e.target.closest('.product-actions')) {
+                        showProductDetail(product.id);
+                    }
+                });
+                
+                gridEl.appendChild(card);
+            });
+        }
+
+        function generateStars(rating) {
+            const full = Math.floor(rating);
+            const half = rating % 1 >= 0.5;
+            let stars = '';
+            
+            for (let i = 0; i < full; i++) {
+                stars += '<i class="fas fa-star"></i>';
+            }
+            if (half) {
+                stars += '<i class="fas fa-star-half-alt"></i>';
+            }
+            const empty = 5 - full - (half ? 1 : 0);
+            for (let i = 0; i < empty; i++) {
+                stars += '<i class="far fa-star"></i>';
+            }
+            
+            return stars;
+        }
+
+        function toggleFavorite(productId) {
+            const user = getCurrentUser();
+            
+            if (!user) {
+                showToast('Silakan login terlebih dahulu', 'error');
+                setTimeout(() => {
+                    const loginBtn = document.getElementById('login-btn');
+                    if (loginBtn) loginBtn.click();
+                }, 500);
+                return;
+            }
+            
+            const isFav = favorites.includes(productId);
+            
+            if (isFav) {
+                favorites = favorites.filter(id => id !== productId);
+                showToast('Dihapus dari favorit', 'success');
+            } else {
+                favorites.push(productId);
+                showToast('❤️ Ditambahkan ke favorit', 'success');
+            }
+            
+            saveFavorites();
+            renderProducts();
+        }
+
+        function showProductDetail(productId) {
+            const product = allProducts.find(p => p.id === productId);
+            if (!product) return;
+            
+            const modal = document.getElementById('product-modal');
+            const detailContainer = document.getElementById('product-detail');
+            
+            if (!modal || !detailContainer) return;
+            
+            const isFav = favorites.includes(product.id);
+            const stars = generateStars(product.rating || 4.5);
+            
+            const productDetails = {
+                'p1': {
+                    ingredients: 'Tepung terigu premium, Gula pasir, Telur segar, Mentega, Strawberry segar pilihan, Custard cream, Vanilla extract',
+                    process: 'Tart dipanggang hingga golden brown dengan tekstur yang renyah. Kemudian diisi dengan custard vanilla yang lembut dan creamy, lalu dihias dengan potongan strawberry segar pilihan yang manis dan juicy.'
+                },
+                'p2': {
+                    ingredients: 'Tepung terigu, Mentega berkualitas tinggi, Gula cokelat, Telur, Chocolate chips premium, Vanilla extract, Baking soda',
+                    process: 'Adonan cookies dicampur dengan chocolate chips premium Belgium, dipanggang pada suhu optimal untuk menghasilkan tekstur yang crispy di luar dan chewy di dalam dengan chocolate yang meleleh sempurna.'
+                },
+                'p3': {
+                    ingredients: 'Tepung terigu, Gula pasir, Telur segar, Buttermilk, Red velvet powder premium, Cream cheese frosting, Vanilla',
+                    process: 'Cupcake red velvet yang lembut dipanggang dengan sempurna hingga menghasilkan warna merah yang cantik. Kemudian dihias dengan cream cheese frosting yang creamy, smooth, dan tidak terlalu manis.'
+                },
+                'p4': {
+                    ingredients: 'Dark chocolate premium (70% cocoa), Mentega Anchor, Gula pasir, Telur, Tepung terigu protein sedang, Cocoa powder Dutch, Vanilla extract',
+                    process: 'Brownies dibuat dengan dark chocolate premium yang berkualitas tinggi, dipanggang dengan teknik khusus untuk menghasilkan tekstur yang super fudgy dan moist di tengah dengan lapisan atas yang sedikit crispy.'
+                },
+                'p5': {
+                    ingredients: 'Tepung terigu, Telur segar, Gula pasir, Cocoa powder, Cherry dalam sirup, Whipped cream, Dark chocolate shavings premium',
+                    process: 'Kue cokelat berlapis yang dipanggang sempurna dengan tekstur yang lembut dan moist. Diisi dengan whipped cream yang ringan dan cherry manis, kemudian dihias dengan chocolate shavings yang elegan.'
+                },
+                'p6': {
+                    ingredients: 'Tepung terigu protein sedang, Gula pasir, Telur segar, Mentega, Vanilla extract Madagascar, Susu full cream, Buttercream frosting',
+                    process: 'Cupcake vanilla klasik dengan resep tradisional yang dipanggang hingga golden dan mengembang sempurna. Dihias dengan buttercream frosting yang creamy dan lembut dengan aroma vanilla yang khas.'
+                },
+                'p7': {
+                    ingredients: 'Dark chocolate Callebaut, Mentega premium, Gula pasir, Telur grade A, Tepung terigu protein sedang, Cocoa powder premium, Fudge frosting',
+                    process: 'Kue cokelat yang super rich dan decadent dipanggang berlapis dengan sempurna. Dilapisi dengan fudge frosting yang thick, glossy dan sangat chocolatey untuk pengalaman cokelat yang maksimal.'
+                },
+                'p8': {
+                    ingredients: 'Tepung terigu, Mentega berkualitas, Gula pasir, Lemon segar organik, Lemon curd homemade, Telur, Kulit lemon parut',
+                    process: 'Tart shell yang renyah dipanggang hingga sempurna dengan warna golden yang cantik. Diisi dengan lemon curd homemade yang segar, tangy dan tidak terlalu asam dari lemon organik pilihan.'
+                }
+            };
+            
+            const details = productDetails[product.id] || {
+                ingredients: 'Bahan-bahan premium pilihan dengan kualitas terbaik, dipilih secara selektif untuk menghasilkan produk berkualitas tinggi.',
+                process: 'Dibuat dengan resep rahasia turun temurun dan teknik profesional untuk menghasilkan rasa dan tekstur yang sempurna.'
+            };
+            
+            detailContainer.innerHTML = `
+                <div class="product-detail-content">
+                    <div class="product-detail-image">
+                        <img src="${product.image_url}" 
+                             alt="${product.name}"
+                             onerror="this.src='https://via.placeholder.com/400x400/F5DEB3/8B4513?text=Sweetify'">
+                    </div>
+                    
+                    <div class="product-detail-info">
+                        <h2 class="product-detail-title">${product.name}</h2>
+                        
+                        <div class="product-detail-rating">
+                            ${stars}
+                            <span class="rating-value">${product.rating || 4.5} / 5.0</span>
+                        </div>
+                        
+                        <div class="product-detail-price">Rp ${product.price.toLocaleString('id-ID')}</div>
+                        
+                        <p class="product-detail-description">${product.description}</p>
+                        
+                        <div class="product-detail-actions">
+                            <button class="btn-icon-detail btn-favorite-detail ${isFav ? 'favorited' : ''}" 
+                                    onclick="toggleFavoriteDetail('${product.id}')">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                            <button class="btn-add-cart-detail" onclick="addToCartFromDetail('${product.id}')">
+                                <i class="fas fa-shopping-cart"></i> Tambah ke Keranjang
+                            </button>
+                        </div>
+                        
+                        <div class="product-tabs">
+                            <button class="tab-btn active" onclick="switchTab(event, 'description')">
+                                <i class="fas fa-align-left"></i> Deskripsi
+                            </button>
+                            <button class="tab-btn" onclick="switchTab(event, 'ingredients')">
+                                <i class="fas fa-list"></i> Bahan & Proses
+                            </button>
+                        </div>
+                        
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="tab-description">
+                                <h4>Deskripsi Produk</h4>
+                                <p>${product.description}</p>
+                            </div>
+                            <div class="tab-pane" id="tab-ingredients">
+                                <h4>Bahan-bahan</h4>
+                                <p>${details.ingredients}</p>
+                                <h4 style="margin-top: 16px;">Proses Pembuatan</h4>
+                                <p>${details.process}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.add('show');
+        }
+        
+        function switchTab(event, tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.closest('.tab-btn').classList.add('active');
+            
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+            
+            if (tabName === 'description') {
+                document.getElementById('tab-description').classList.add('active');
+            } else {
+                document.getElementById('tab-ingredients').classList.add('active');
+            }
+        }
+        
+        function toggleFavoriteDetail(productId) {
+            toggleFavorite(productId);
+            
+            const favBtn = document.querySelector('.btn-favorite-detail');
+            if (favBtn) {
+                const isFav = favorites.includes(productId);
+                if (isFav) {
+                    favBtn.classList.add('favorited');
+                } else {
+                    favBtn.classList.remove('favorited');
+                }
+            }
+        }
+        
+        function addToCartFromDetail(productId) {
+            addToCart(productId);
+        }
+
+        function closeProductModal() {
+            const modal = document.getElementById('product-modal');
+            if (modal) modal.classList.remove('show');
+        }
+
+        function setupCategoryFilter() {
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    selectedCategory = btn.getAttribute('data-category');
+                    renderProducts();
+                });
+            });
+        }
+
+        function setupSearch() {
+            const searchBtn = document.getElementById('search-btn');
+            const searchContainer = document.getElementById('search-container');
+            const searchInput = document.getElementById('search-input');
+            const searchClose = document.getElementById('search-close');
+            
+            if (searchBtn && searchContainer && searchInput) {
+                searchBtn.addEventListener('click', () => {
+                    searchContainer.classList.toggle('hidden');
+                    if (!searchContainer.classList.contains('hidden')) {
+                        searchInput.focus();
+                    }
+                });
+            }
+            
+            if (searchClose && searchContainer && searchInput) {
+                searchClose.addEventListener('click', () => {
+                    searchContainer.classList.add('hidden');
+                    searchInput.value = '';
+                    renderProducts();
+                });
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    renderProducts(e.target.value);
+                });
+            }
+        }
+
+        async function initProducts() {
+            await fetchProducts();
+            setupCategoryFilter();
+            setupSearch();
+            
+            if (typeof supabase !== 'undefined') {
+                supabase.auth.onAuthStateChange((event, session) => {
+                    if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+                        loadFavorites();
+                        renderProducts();
+                    }
+                });
+            }
+        }
+
+        function updateNotificationBadge() {
+            const user = getCurrentUser();
+            if (!user) {
+                document.getElementById('notif-badge').classList.add('hidden');
+                return;
+            }
+            
+            const notifKey = `sweetify_notifications_${user.id}`;
+            const stored = localStorage.getItem(notifKey);
+            const notifications = stored ? JSON.parse(stored) : [];
+            
+            const unreadCount = notifications.filter(n => !n.read).length;
+            const badge = document.getElementById('notif-badge');
+            
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        async function loadUserAvatar() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (session && session.user) {
+                    const { data: profile, error } = await supabase
+                        .from('user_profiles')
+                        .select('avatar_url, full_name')
+                        .eq('id', session.user.id)
+                        .single();
+
+                    if (!error && profile) {
+                        const userAvatarBtn = document.getElementById('user-avatar');
+                        const userInitials = document.getElementById('user-initials');
+                        
+                        if (profile.avatar_url) {
+                            userAvatarBtn.innerHTML = `<img src="${profile.avatar_url}" alt="Avatar">`;
+                        } else if (userInitials && profile.full_name) {
+                            const name = profile.full_name || session.user.email.split('@')[0];
+                            const initials = getInitials(name);
+                            userInitials.textContent = initials;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading avatar:', error);
+            }
+        }
+
+        function getInitials(name) {
+            if (!name) return 'U';
+            const parts = name.split(' ').filter(part => part.length > 0);
+            if (parts.length > 1) {
+                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            }
+            return name[0].toUpperCase();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initProducts();
+            
+            const notifBtn = document.getElementById('notif-btn');
+            if (notifBtn) {
+                notifBtn.addEventListener('click', function() {
+                    const user = getCurrentUser();
+                    if (!user) {
+                        showToast('Silakan login terlebih dahulu', 'error');
+                        setTimeout(() => {
+                            const loginBtn = document.getElementById('login-btn');
+                            if (loginBtn) loginBtn.click();
+                        }, 500);
+                        return;
+                    }
+                    window.location.href = 'notifikasi.html';
+                });
+            }
+            
+            updateNotificationBadge();
+            setInterval(updateNotificationBadge, 5000);
+            
+            if (typeof supabase !== 'undefined') {
+                supabase.auth.onAuthStateChange(() => {
+                    updateNotificationBadge();
+                    loadUserAvatar();
+                });
+            }
+
+            const navProfile = document.getElementById('nav-profile');
+            if (navProfile) {
+                navProfile.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const userMenu = document.getElementById('user-menu');
+                    if (userMenu && !userMenu.classList.contains('hidden')) {
+                        window.location.href = 'profile.html';
+                    } else {
+                        showToast('Silakan login terlebih dahulu', 'error');
+                        const loginBtn = document.getElementById('login-btn');
+                        if (loginBtn) {
+                            setTimeout(() => loginBtn.click(), 500);
+                        }
+                    }
+                });
+            }
+
+            loadUserAvatar();
+
+            window.addEventListener('user-logged-in', function() {
+                setTimeout(() => {
+                    loadUserAvatar();
+                }, 500);
+            });
+            
+            const closeProductBtn = document.getElementById('close-product');
+            if (closeProductBtn) {
+                closeProductBtn.addEventListener('click', closeProductModal);
+            }
+            
+            const productModal = document.getElementById('product-modal');
+            if (productModal) {
+                productModal.addEventListener('click', function(e) {
+                    if (e.target === productModal) {
+                        closeProductModal();
+                    }
+                });
+            }
+        });
+    </script>
+    <script src="js/main.js"></script>
+
+</body>
+</html>

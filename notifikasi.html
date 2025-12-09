@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifikasi - Sweetify</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 16px;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #333;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .mark-all-read {
+            background: none;
+            border: none;
+            color: #A0522D;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .notifications-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .notification-item {
+            background-color: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .notification-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .notification-item.unread {
+            background-color: #fff9e6;
+            border-left: 4px solid #A0522D;
+        }
+
+        .notification-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .notification-icon.processing {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .notification-icon.shipping {
+            background-color: #cfe2ff;
+            color: #084298;
+        }
+
+        .notification-icon.ready {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .notification-icon.completed {
+            background-color: #d1e7dd;
+            color: #0a3622;
+        }
+
+        .notification-icon.cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .notification-message {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: #999;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .notification-badge {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #A0522D;
+            flex-shrink: 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .loading i {
+            font-size: 32px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+        }
+
+        .nav-item.active {
+            color: #A0522D;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #323232;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        .toast.success {
+            background-color: #4caf50;
+        }
+
+        .toast.error {
+            background-color: #f44336;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    
+    <header class="header">
+        <div class="header-content">
+            <button class="btn-back" onclick="window.location.href='index.html'">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="header-title">
+                <img src="Screenshot 2025-12-04 131752.png" alt="Sweetify" class="logo-image">
+                <h1 class="page-title">Notifikasi</h1>
+            </div>
+            <button class="mark-all-read" id="mark-all-read">
+                <i class="fas fa-check-double"></i>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="notifications-container" id="notifications-container"></div>
+            
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner"></i>
+                <p>Memuat notifikasi...</p>
+            </div>
+            
+            <div class="empty-state hidden" id="empty-state">
+                <i class="fas fa-bell-slash"></i>
+                <h3>Belum Ada Notifikasi</h3>
+                <p>Notifikasi pesanan Anda akan muncul di sini</p>
+            </div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Beranda</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Keranjang</span>
+        </a>
+        <a href="orders.html" class="nav-item">
+            <i class="fas fa-receipt"></i>
+            <span>Pesanan</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>Akun</span>
+        </a>
+    </nav>
+
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Success</span>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ylfyixhkowiukaeunzjo.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlsZnlpeGhrb3dpdWthZXVuempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0NDg4NTEsImV4cCI6MjA4MDAyNDg1MX0.x1bD_-kTTyqNWPzj-llbGPIfgWx4YJVDpqMnD1O5WoU';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let allNotifications = [];
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            const icon = toast.querySelector('i');
+            
+            toastMessage.textContent = message;
+            toast.className = `toast show ${type}`;
+            
+            if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle';
+            } else {
+                icon.className = 'fas fa-check-circle';
+            }
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            return session?.user || null;
+        }
+
+        function timeAgo(date) {
+            const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+            
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + " tahun lalu";
+            
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + " bulan lalu";
+            
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + " hari lalu";
+            
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + " jam lalu";
+            
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + " menit lalu";
+            
+            return "Baru saja";
+        }
+
+        function getNotificationStyle(status) {
+            const styles = {
+                'Diproses': { icon: 'fas fa-box', class: 'processing', title: '📦 Pesanan Diproses' },
+                'Dikirim': { icon: 'fas fa-truck', class: 'shipping', title: '🚚 Pesanan Dikirim' },
+                'Siap Diambil': { icon: 'fas fa-shopping-bag', class: 'ready', title: '✅ Pesanan Siap Diambil' },
+                'Selesai': { icon: 'fas fa-check-circle', class: 'completed', title: '✅ Pesanan Selesai' },
+                'Dibatalkan': { icon: 'fas fa-times-circle', class: 'cancelled', title: '❌ Pesanan Dibatalkan' }
+            };
+            return styles[status] || { icon: 'fas fa-bell', class: 'processing', title: '🔔 Notifikasi' };
+        }
+
+        async function initNotifications() {
+            const user = await checkAuth();
+            if (!user) {
+                showToast('Silakan login terlebih dahulu', 'error');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+                return;
+            }
+            
+            await loadNotifications();
+            setupListeners();
+        }
+
+        async function loadNotifications() {
+            const loading = document.getElementById('loading');
+            const container = document.getElementById('notifications-container');
+            const emptyState = document.getElementById('empty-state');
+            
+            try {
+                loading.classList.remove('hidden');
+                container.innerHTML = '';
+                emptyState.classList.add('hidden');
+                
+                const user = await checkAuth();
+                
+                const notifKey = `sweetify_notifications_${user.id}`;
+                const storedNotifs = localStorage.getItem(notifKey);
+                allNotifications = storedNotifs ? JSON.parse(storedNotifs) : [];
+                
+                if (allNotifications.length === 0) {
+                    emptyState.classList.remove('hidden');
+                } else {
+                    renderNotifications();
+                }
+                
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                showToast('Gagal memuat notifikasi', 'error');
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        function renderNotifications() {
+            const container = document.getElementById('notifications-container');
+            const emptyState = document.getElementById('empty-state');
+            
+            if (allNotifications.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            allNotifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            
+            container.innerHTML = allNotifications.map(notif => {
+                const style = getNotificationStyle(notif.status);
+                
+                return `
+                    <div class="notification-item ${notif.read ? '' : 'unread'}" 
+                         onclick="handleNotificationClick('${notif.id}')">
+                        <div class="notification-icon ${style.class}">
+                            <i class="${style.icon}"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-title">
+                                ${style.title}
+                            </div>
+                            <div class="notification-message">
+                                ${notif.message}
+                            </div>
+                            <div class="notification-time">
+                                <i class="far fa-clock"></i>
+                                ${timeAgo(notif.created_at)}
+                            </div>
+                        </div>
+                        ${!notif.read ? '<div class="notification-badge"></div>' : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function handleNotificationClick(notifId) {
+            const user = await checkAuth();
+            const notifKey = `sweetify_notifications_${user.id}`;
+            
+            const notifIndex = allNotifications.findIndex(n => n.id === notifId);
+            if (notifIndex !== -1) {
+                allNotifications[notifIndex].read = true;
+                localStorage.setItem(notifKey, JSON.stringify(allNotifications));
+            }
+            
+            window.location.href = 'orders.html';
+        }
+
+        async function markAllAsRead() {
+            const user = await checkAuth();
+            const notifKey = `sweetify_notifications_${user.id}`;
+            
+            allNotifications = allNotifications.map(n => ({ ...n, read: true }));
+            localStorage.setItem(notifKey, JSON.stringify(allNotifications));
+            
+            renderNotifications();
+            showToast('Semua notifikasi ditandai sebagai dibaca', 'success');
+        }
+
+        function setupListeners() {
+            const markAllBtn = document.getElementById('mark-all-read');
+            if (markAllBtn) {
+                markAllBtn.addEventListener('click', markAllAsRead);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initNotifications);
+    </script>
+
+</body>
+</html>

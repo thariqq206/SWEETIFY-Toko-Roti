@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Sweetify</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #a0522d;
+            --primary-dark: #8b4513;
+            --secondary: #f5f5dc;
+            --accent: #ff8c00;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --white: #ffffff;
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-600: #6c757d;
+            --gray-800: #343a40;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+            --shadow-lg: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--gray-100);
+            color: var(--gray-800);
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 260px;
+            background: var(--white);
+            box-shadow: var(--shadow);
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .logo-section {
+            padding: 24px 20px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .nav-menu {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--gray-800);
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: var(--gray-100);
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: var(--secondary);
+            color: var(--primary);
+            font-weight: 600;
+            border-right: 4px solid var(--primary);
+        }
+
+        .nav-item i {
+            font-size: 18px;
+            width: 24px;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            background: var(--white);
+            padding: 16px 32px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topbar h1 {
+            font-size: 24px;
+            color: var(--gray-800);
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .content-area {
+            padding: 32px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-info h3 {
+            color: var(--gray-600);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .stat-info .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--gray-800);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .stat-icon.blue { background: #e3f2fd; color: #2196f3; }
+        .stat-icon.green { background: #e8f5e9; color: #4caf50; }
+        .stat-icon.orange { background: #fff3e0; color: #ff9800; }
+
+        .section {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .section-body {
+            padding: 24px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        th {
+            background: var(--gray-100);
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        .badge-danger { background: #f8d7da; color: #721c24; }
+        .badge-info { background: #d1ecf1; color: #0c5460; }
+
+        .preorder-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: #fff3cd;
+            color: #856404;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .preorder-info {
+            font-size: 12px;
+            color: #856404;
+            background: #fff9e6;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 8px;
+            border-left: 3px solid #ffc107;
+        }
+
+        .preorder-date-display {
+            font-weight: 600;
+            color: #856404;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--gray-800);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--success);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            display: flex;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--gray-600);
+        }
+
+        .order-details {
+            background: var(--gray-100);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo-section">
+            <img src="Screenshot 2025-12-04 131752.png" alt="Logo" class="logo-img">
+            <span class="logo-text">Sweetify</span>
+        </div>
+        <nav class="nav-menu">
+            <a class="nav-item active" data-page="dashboard">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a class="nav-item" data-page="products">
+                <i class="fas fa-box"></i>
+                <span>Produk</span>
+            </a>
+            <a class="nav-item" data-page="orders">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Pesanan</span>
+            </a>
+            <a class="nav-item" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-content">
+        <div class="topbar">
+            <h1 id="page-title">Dashboard</h1>
+            <div class="admin-info">
+                <div class="admin-avatar">A</div>
+                <span>Admin</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div id="dashboard-page">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Total Produk</h3>
+                            <div class="stat-value" id="total-products">0</div>
+                        </div>
+                        <div class="stat-icon blue">
+                            <i class="fas fa-box"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Total Pesanan</h3>
+                            <div class="stat-value" id="total-orders">0</div>
+                        </div>
+                        <div class="stat-icon green">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Pendapatan</h3>
+                            <div class="stat-value" id="total-revenue">Rp 0</div>
+                        </div>
+                        <div class="stat-icon orange">
+                            <i class="fas fa-money-bill"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Pesanan Terbaru</h2>
+                    </div>
+                    <div class="section-body">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Pelanggan</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Tanggal</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-orders">
+                                    <tr>
+                                        <td colspan="5" class="loading">Memuat data...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="products-page" class="hidden">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Kelola Produk</h2>
+                        <button class="btn btn-primary" onclick="showAddProductModal()">
+                            <i class="fas fa-plus"></i> Tambah Produk
+                        </button>
+                    </div>
+                    <div class="section-body">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Gambar</th>
+                                        <th>Nama</th>
+                                        <th>Kategori</th>
+                                        <th>Harga</th>
+                                        <th>Stok</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="products-table">
+                                    <tr>
+                                        <td colspan="7" class="loading">Memuat data...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="orders-page" class="hidden">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Kelola Pesanan</h2>
+                    </div>
+                    <div class="section-body">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Pelanggan</th>
+                                        <th>Items</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Tanggal</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-table">
+                                    <tr>
+                                        <td colspan="7" class="loading">Memuat data...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="product-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="product-modal-title">Tambah Produk</h2>
+                <button class="btn btn-sm" onclick="closeProductModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="product-form">
+                    <div class="form-group">
+                        <label class="form-label">Nama Produk</label>
+                        <input type="text" class="form-control" id="product-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Kategori</label>
+                        <select class="form-control" id="product-category" required>
+                            <option value="Cake">Cake</option>
+                            <option value="Cupcake">Cupcake</option>
+                            <option value="Tart">Tart</option>
+                            <option value="Brownies">Brownies</option>
+                            <option value="Cookies">Cookies</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Harga</label>
+                        <input type="number" class="form-control" id="product-price" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stok</label>
+                        <input type="number" class="form-control" id="product-stock" value="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Deskripsi</label>
+                        <textarea class="form-control" id="product-description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">URL Gambar</label>
+                        <input type="url" class="form-control" id="product-image">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-save"></i> Simpan
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="order-detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Detail Pesanan</h2>
+                <button class="btn btn-sm" onclick="closeOrderDetailModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="order-detail-content">
+                <div class="loading">Memuat...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Success</span>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ylfyixhkowiukaeunzjo.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlsZnlpeGhrb3dpdWthZXVuempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0NDg4NTEsImV4cCI6MjA4MDAyNDg1MX0.x1bD_-kTTyqNWPzj-llbGPIfgWx4YJVDpqMnD1O5WoU';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentEditProduct = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const { data, error } = await supabase.from('products').select('count');
+                if (error) {
+                    showToast('Gagal terhubung ke database: ' + error.message, 'error');
+                }
+            } catch (e) {
+                showToast('Gagal menghubungkan ke server', 'error');
+            }
+            
+            loadDashboard();
+            setupNavigation();
+            setupRealtimeOrders();
+        });
+
+        function setupRealtimeOrders() {
+            const ordersSubscription = supabase
+                .channel('orders-channel')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'orders'
+                    },
+                    (payload) => {
+                        const currentPage = document.querySelector('[id$="-page"]:not(.hidden)');
+                        if (currentPage && currentPage.id === 'dashboard-page') {
+                            loadDashboard();
+                        }
+                        
+                        if (currentPage && currentPage.id === 'orders-page') {
+                            loadOrders();
+                        }
+                    }
+                )
+                .subscribe();
+        }
+
+        function setupNavigation() {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    if (this.getAttribute('data-page')) {
+                        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        const page = this.getAttribute('data-page');
+                        showPage(page);
+                    }
+                });
+            });
+        }
+
+        function showPage(page) {
+            document.querySelectorAll('[id$="-page"]').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`${page}-page`).classList.remove('hidden');
+            
+            const titles = {
+                dashboard: 'Dashboard',
+                products: 'Kelola Produk',
+                orders: 'Kelola Pesanan'
+            };
+            document.getElementById('page-title').textContent = titles[page];
+            
+            if (page === 'dashboard') loadDashboard();
+            if (page === 'products') loadProducts();
+            if (page === 'orders') loadOrders();
+        }
+
+        async function loadDashboard() {
+            try {
+                const [products, orders] = await Promise.all([
+                    supabase.from('products').select('*', { count: 'exact' }),
+                    supabase.from('orders').select('*').order('created_at', { ascending: false })
+                ]);
+
+                document.getElementById('total-products').textContent = products.count || 0;
+                document.getElementById('total-orders').textContent = orders.data?.length || 0;
+
+                const revenue = orders.data?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
+                document.getElementById('total-revenue').textContent = formatCurrency(revenue);
+
+                displayRecentOrders(orders.data?.slice(0, 5) || []);
+            } catch (error) {
+                showToast('Gagal memuat dashboard', 'error');
+            }
+        }
+
+        function displayRecentOrders(orders) {
+            const tbody = document.getElementById('recent-orders');
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Belum ada pesanan</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = orders.map(order => {
+                const preorderBadge = order.is_preorder ? 
+                    `<span class="preorder-badge"><i class="fas fa-calendar-check"></i> Pre-Order</span>` : '';
+                
+                const preorderInfo = order.is_preorder && order.preorder_date ? 
+                    `<div class="preorder-info">
+                        <i class="fas fa-calendar-alt"></i> 
+                        <strong>Tanggal Pengambilan:</strong> 
+                        <span class="preorder-date-display">${formatDate(order.preorder_date)}</span>
+                        ${order.preorder_time ? ` <i class="fas fa-clock"></i> ${order.preorder_time}` : ''}
+                    </div>` : '';
+                
+                return `
+                    <tr>
+                        <td>
+                            <div>${order.order_number} ${preorderBadge}</div>
+                            ${preorderInfo}
+                        </td>
+                        <td>${order.customer_name}</td>
+                        <td>${formatCurrency(order.total_amount)}</td>
+                        <td><span class="badge badge-${getStatusColor(order.status)}">${order.status}</span></td>
+                        <td>${new Date(order.created_at).toLocaleDateString('id-ID')}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function loadProducts() {
+            try {
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                displayProducts(data || []);
+            } catch (error) {
+                showToast('Gagal memuat produk', 'error');
+            }
+        }
+
+        function displayProducts(products) {
+            const tbody = document.getElementById('products-table');
+            if (products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">Belum ada produk</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = products.map(product => `
+                <tr>
+                    <td><img src="${product.image_url}" class="product-img" onerror="this.src='https://via.placeholder.com/50'"></td>
+                    <td>${product.name}</td>
+                    <td>${product.category}</td>
+                    <td>${formatCurrency(product.price)}</td>
+                    <td>${product.stock || 0}</td>
+                    <td><span class="badge ${product.is_available ? 'badge-success' : 'badge-danger'}">${product.is_available ? 'Tersedia' : 'Habis'}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick='editProduct(${JSON.stringify(product)})'>
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteProduct('${product.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function showAddProductModal() {
+            currentEditProduct = null;
+            document.getElementById('product-modal-title').textContent = 'Tambah Produk';
+            document.getElementById('product-form').reset();
+            document.getElementById('product-modal').classList.add('show');
+        }
+
+        function editProduct(product) {
+            currentEditProduct = product;
+            document.getElementById('product-modal-title').textContent = 'Edit Produk';
+            document.getElementById('product-name').value = product.name;
+            document.getElementById('product-category').value = product.category;
+            document.getElementById('product-price').value = product.price;
+            document.getElementById('product-stock').value = product.stock || 100;
+            document.getElementById('product-description').value = product.description || '';
+            document.getElementById('product-image').value = product.image_url || '';
+            document.getElementById('product-modal').classList.add('show');
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.remove('show');
+        }
+
+        document.getElementById('product-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const productData = {
+                name: document.getElementById('product-name').value,
+                category: document.getElementById('product-category').value,
+                price: parseFloat(document.getElementById('product-price').value),
+                stock: parseInt(document.getElementById('product-stock').value),
+                description: document.getElementById('product-description').value,
+                image_url: document.getElementById('product-image').value,
+                is_available: true,
+                rating: 4.5
+            };
+
+            try {
+                if (currentEditProduct) {
+                    const { error } = await supabase
+                        .from('products')
+                        .update(productData)
+                        .eq('id', currentEditProduct.id);
+
+                    if (error) throw error;
+                    showToast('Produk berhasil diupdate');
+                } else {
+                    const { error } = await supabase
+                        .from('products')
+                        .insert([productData]);
+
+                    if (error) throw error;
+                    showToast('Produk berhasil ditambahkan');
+                }
+
+                closeProductModal();
+                loadProducts();
+            } catch (error) {
+                showToast('Gagal menyimpan produk', 'error');
+            }
+        });
+
+        async function deleteProduct(id) {
+            if (!confirm('Yakin ingin menghapus produk ini? Tindakan ini tidak dapat dibatalkan.')) {
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('products')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+                showToast('Produk berhasil dihapus');
+                loadProducts();
+            } catch (error) {
+                showToast('Gagal menghapus produk', 'error');
+            }
+        }
+
+        async function loadOrders() {
+            try {
+                const { data: orders, error } = await supabase
+                    .from('orders')
+                    .select(`
+                        *,
+                        order_items (
+                            product_id,
+                            product_name,
+                            price,
+                            quantity,
+                            subtotal,
+                            image_url
+                        )
+                    `)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                displayOrders(orders || []);
+            } catch (error) {
+                showToast('Gagal memuat pesanan: ' + error.message, 'error');
+            }
+        }
+
+        function displayOrders(orders) {
+            const tbody = document.getElementById('orders-table');
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">Belum ada pesanan</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = orders.map(order => {
+                const items = order.order_items || [];
+                const itemsCount = items.length;
+                
+                const itemsList = items.map(item => `${item.product_name} (${item.quantity}x)`).join(', ');
+                const itemsPreview = itemsList.length > 50 ? itemsList.substring(0, 50) + '...' : itemsList;
+                
+                const preorderBadge = order.is_preorder ? 
+                    `<span class="preorder-badge"><i class="fas fa-calendar-check"></i> Pre-Order</span>` : '';
+                
+                const preorderInfo = order.is_preorder && order.preorder_date ? 
+                    `<div class="preorder-info">
+                        <i class="fas fa-calendar-alt"></i> 
+                        <strong>Pengambilan:</strong> 
+                        <span class="preorder-date-display">${formatDate(order.preorder_date)}</span>
+                        ${order.preorder_time ? ` <i class="fas fa-clock"></i> ${order.preorder_time}` : ''}
+                    </div>` : '';
+
+                return `
+                    <tr>
+                        <td>
+                            <div>${order.order_number} ${preorderBadge}</div>
+                            ${preorderInfo}
+                        </td>
+                        <td>
+                            ${order.customer_name}<br>
+                            <small style="color: #666;">${order.customer_phone}</small>
+                        </td>
+                        <td>
+                            <div style="font-size: 13px; color: #333; font-weight: 600;">${itemsCount} produk</div>
+                            <div style="font-size: 11px; color: #666; margin-top: 4px;" title="${itemsList}">${itemsPreview}</div>
+                        </td>
+                        <td>${formatCurrency(order.total_amount)}</td>
+                        <td>
+                            <select class="form-control" onchange="updateOrderStatus('${order.id}', this.value, '${order.user_id}')" style="width: auto; padding: 4px 8px;">
+                                <option value="Menunggu Pembayaran" ${order.status === 'Menunggu Pembayaran' ? 'selected' : ''}>Menunggu Pembayaran</option>
+                                <option value="Diproses" ${order.status === 'Diproses' ? 'selected' : ''}>Diproses</option>
+                                <option value="Siap Diambil" ${order.status === 'Siap Diambil' ? 'selected' : ''}>Siap Diambil</option>
+                                <option value="Sedang Dikirim" ${order.status === 'Sedang Dikirim' ? 'selected' : ''}>Sedang Dikirim</option>
+                                <option value="Selesai" ${order.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
+                                <option value="Dibatalkan" ${order.status === 'Dibatalkan' ? 'selected' : ''}>Dibatalkan</option>
+                            </select>
+                        </td>
+                        <td>${new Date(order.created_at).toLocaleDateString('id-ID')}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick='showOrderDetail(${JSON.stringify(order).replace(/'/g, "&#39;")})'>
+                                <i class="fas fa-eye"></i> Detail
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function updateOrderStatus(orderId, newStatus, userId) {
+            try {
+                const { data: order, error: fetchError } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('id', orderId)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                const { error: updateError } = await supabase
+                    .from('orders')
+                    .update({ status: newStatus })
+                    .eq('id', orderId);
+
+                if (updateError) throw updateError;
+
+                await createUserNotification(userId || order.user_id, orderId, order.order_number, newStatus, order.delivery_method);
+
+                showToast('Status pesanan berhasil diupdate dan notifikasi dikirim ke pelanggan');
+                loadOrders();
+                loadDashboard();
+            } catch (error) {
+                showToast('Gagal mengupdate status', 'error');
+            }
+        }
+
+        async function createUserNotification(userId, orderId, orderNumber, status, deliveryMethod) {
+            try {
+                let notifStatus = status;
+                let message = '';
+                
+                if (status === 'Diproses') {
+                    notifStatus = 'Diproses';
+                    message = `Pesanan ${orderNumber} sedang diproses. Kami akan segera menyiapkan pesanan Anda.`;
+                } else if (status === 'Siap Diambil') {
+                    notifStatus = 'Siap Diambil';
+                    message = `Pesanan ${orderNumber} sudah siap diambil! Silakan datang ke toko kami.`;
+                } else if (status === 'Sedang Dikirim') {
+                    notifStatus = 'Sedang Dikirim';
+                    message = `Pesanan ${orderNumber} sedang dikirim menggunakan GoSend. Mohon menunggu ya!`;
+                } else if (status === 'Selesai') {
+                    notifStatus = 'Selesai';
+                    message = `Pesanan ${orderNumber} telah selesai. Terima kasih telah berbelanja di Sweetify!`;
+                } else if (status === 'Dibatalkan') {
+                    notifStatus = 'Dibatalkan';
+                    message = `Pesanan ${orderNumber} telah dibatalkan. Hubungi kami jika ada pertanyaan.`;
+                } else {
+                    message = `Status pesanan ${orderNumber} telah diperbarui.`;
+                }
+
+                const { error: dbError } = await supabase
+                    .from('notifications')
+                    .insert({
+                        user_id: userId,
+                        order_id: orderId,
+                        order_number: orderNumber,
+                        status: notifStatus,
+                        message: message,
+                        read: false,
+                        created_at: new Date().toISOString()
+                    });
+
+                if (dbError) throw dbError;
+                
+            } catch (error) {
+                // Silent fail
+            }
+        }
+
+        function showOrderDetail(order) {
+            const items = order.order_items || [];
+            
+            const preorderInfo = order.is_preorder ? `
+                <div style="background: #fff3cd; padding: 16px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+                    <h4 style="color: #856404; margin-bottom: 8px;">
+                        <i class="fas fa-calendar-check"></i> Pre-Order
+                    </h4>
+                    <p style="margin: 4px 0; color: #856404;">
+                        <strong><i class="fas fa-calendar-alt"></i> Tanggal Pengambilan:</strong> 
+                        <span style="font-size: 15px; font-weight: 600;">${formatDate(order.preorder_date)}</span>
+                    </p>
+                    ${order.preorder_time ? `
+                        <p style="margin: 4px 0; color: #856404;">
+                            <strong><i class="fas fa-clock"></i> Waktu Pengambilan:</strong> 
+                            <span style="font-size: 15px; font-weight: 600;">${order.preorder_time}</span>
+                        </p>
+                    ` : ''}
+                    <p style="margin-top: 8px; font-size: 12px; color: #856404; font-style: italic;">
+                        💡 Pesanan ini dijadwalkan untuk diambil pada tanggal yang telah ditentukan
+                    </p>
+                </div>
+            ` : '';
+
+            const deliveryIcon = order.delivery_method === 'gosend' ? '<i class="fas fa-motorcycle"></i>' : '<i class="fas fa-store"></i>';
+            const deliveryColor = order.delivery_method === 'gosend' ? '#4caf50' : '#2196f3';
+            const deliveryBg = order.delivery_method === 'gosend' ? '#e8f5e9' : '#e3f2fd';
+            const deliveryText = order.delivery_method === 'gosend' ? 'Diantar (GoSend)' : 'Diambil di Toko';
+
+            const content = `
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 12px;">Order #${order.order_number}</h3>
+                    ${preorderInfo}
+                    
+                    <div style="background: ${deliveryBg}; padding: 12px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid ${deliveryColor};">
+                        <p style="margin: 0; color: ${deliveryColor}; font-weight: 600;">
+                            ${deliveryIcon} <strong>Metode Pengiriman:</strong> 
+                            <span style="font-size: 15px;">${deliveryText}</span>
+                        </p>
+                    </div>
+
+                    <p><strong>Pelanggan:</strong> ${order.customer_name}</p>
+                    <p><strong>No. Telepon:</strong> ${order.customer_phone}</p>
+                    <p><strong>Alamat:</strong> ${order.customer_address || '-'}</p>
+                    <p><strong>Status:</strong> <span class="badge badge-${getStatusColor(order.status)}">${order.status}</span></p>
+                    <p><strong>Metode Pembayaran:</strong> ${order.payment_method}</p>
+                    ${order.notes ? `<p><strong>Catatan:</strong> ${order.notes}</p>` : ''}
+                </div>
+
+                <h4 style="margin-bottom: 12px;">📦 Produk yang Dibeli:</h4>
+                <table style="width: 100%; margin-bottom: 20px; border: 1px solid #dee2e6;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th style="padding: 12px; border-bottom: 2px solid #dee2e6;">Produk</th>
+                            <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">Jumlah</th>
+                            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #dee2e6;">Harga Satuan</th>
+                            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #dee2e6;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${items.map((item, index) => `
+                            <tr style="${index % 2 === 0 ? 'background: #ffffff;' : 'background: #f8f9fa;'}">
+                                <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <img src="${item.image_url || 'https://via.placeholder.com/50'}" 
+                                             style="width: 50px; height: 50px; border-radius: 6px; object-fit: cover;"
+                                             onerror="this.src='https://via.placeholder.com/50'">
+                                        <div style="font-weight: 500; color: #333;">${item.product_name}</div>
+                                    </div>
+                                </td>
+                                <td style="padding: 12px; text-align: center; border-bottom: 1px solid #dee2e6;">
+                                    <span style="background: #e3f2fd; color: #1976d2; padding: 4px 12px; border-radius: 12px; font-weight: 600;">
+                                        ${item.quantity} pcs
+                                    </span>
+                                </td>
+                                <td style="padding: 12px; text-align: right; border-bottom: 1px solid #dee2e6; color: #666;">
+                                    ${formatCurrency(item.price)}
+                                </td>
+                                <td style="padding: 12px; text-align: right; border-bottom: 1px solid #dee2e6; font-weight: 600; color: #a0522d;">
+                                    ${formatCurrency(item.subtotal)}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                    <tfoot>
+                        <tr style="background: #fff3e0; font-weight: bold;">
+                            <td colspan="3" style="padding: 16px; text-align: right; font-size: 16px; color: #333; border-top: 2px solid #a0522d;">
+                                Total Pembayaran:
+                            </td>
+                            <td style="padding: 16px; text-align: right; font-size: 18px; color: #a0522d; border-top: 2px solid #a0522d;">
+                                ${formatCurrency(order.total_amount)}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; border-left: 4px solid #6c757d;">
+                    <p style="margin: 0; font-size: 12px; color: #666;">
+                        <strong><i class="far fa-calendar"></i> Tanggal Pesanan:</strong> ${new Date(order.created_at).toLocaleString('id-ID', { 
+                            day: 'numeric', 
+                            month: 'long', 
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}
+                    </p>
+                </div>
+            `;
+
+            document.getElementById('order-detail-content').innerHTML = content;
+            document.getElementById('order-detail-modal').classList.add('show');
+        }
+
+        function closeOrderDetailModal() {
+            document.getElementById('order-detail-modal').classList.remove('show');
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('id-ID', { 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric' 
+            });
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'Menunggu Pembayaran': 'warning',
+                'Diproses': 'info',
+                'Siap Diambil': 'success',
+                'Sedang Dikirim': 'info',
+                'Selesai': 'success',
+                'Dibatalkan': 'danger'
+            };
+            return colors[status] || 'info';
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            toast.className = 'toast show';
+            
+            if (type === 'error') {
+                toast.classList.add('error');
+            }
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.classList.remove('error');
+            }, 3000);
+        }
+
+        function logout() {
+            if (confirm('Yakin ingin keluar?')) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        document.getElementById('product-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeProductModal();
+            }
+        });
+
+        document.getElementById('order-detail-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeOrderDetailModal();
+            }
+        });
+    </script>
+</body>
+</html>

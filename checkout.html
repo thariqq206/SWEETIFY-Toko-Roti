@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Sweetify</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --color-primary: #A0522D;
+            --color-primary-dark: #8B4513;
+            --color-white: #ffffff;
+            --color-text: #333333;
+            --color-text-light: #666666;
+            --color-gray-100: #f5f5f5;
+            --color-gray-200: #e0e0e0;
+            --color-gray-300: #dddddd;
+            --border-radius: 12px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--color-gray-100);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--color-white);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--color-text);
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .logo-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-image {
+           width: 40px;
+            height: 40px;
+            border-radius: 50%; /* Tambahkan baris ini */
+            object-fit: cover;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        /* Checkout Sections */
+        .checkout-section {
+            background-color: var(--color-white);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--color-text);
+            border-bottom: 2px solid var(--color-gray-200);
+            padding-bottom: 12px;
+        }
+
+        .section-title i {
+            color: var(--color-primary);
+        }
+
+        /* Order Items */
+        .order-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .order-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background-color: var(--color-gray-100);
+            border-radius: 8px;
+        }
+
+        .order-item-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .order-item-info {
+            flex: 1;
+        }
+
+        .order-item-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .order-item-price {
+            font-size: 13px;
+            color: var(--color-primary);
+            font-weight: 500;
+        }
+
+        .order-item-qty {
+            font-size: 12px;
+            color: var(--color-text-light);
+        }
+
+        /* Order Type Selection */
+        .order-type-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .order-type-option {
+            position: relative;
+        }
+
+        .order-type-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .order-type-option label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border: 2px solid var(--color-gray-300);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            background-color: var(--color-white);
+        }
+
+        .order-type-option label i {
+            font-size: 24px;
+            color: var(--color-text-light);
+        }
+
+        .order-type-option label .order-type-info {
+            flex: 1;
+        }
+
+        .order-type-option label .order-type-title {
+            font-size: 16px;
+            font-weight: 500;
+            display: block;
+        }
+
+        .order-type-option label .order-type-desc {
+            font-size: 13px;
+            color: var(--color-text-light);
+            display: block;
+            margin-top: 4px;
+        }
+
+        .order-type-option:hover label {
+            border-color: var(--color-primary);
+        }
+
+        .order-type-option input[type="radio"]:checked + label {
+            border-color: var(--color-primary);
+            background-color: rgba(160, 82, 45, 0.05);
+        }
+
+        .order-type-option input[type="radio"]:checked + label i {
+            color: var(--color-primary);
+        }
+
+        /* Pre-order Date/Time */
+        .preorder-datetime {
+            margin-top: 16px;
+            padding: 16px;
+            background-color: #fff8f0;
+            border: 1px solid #ffd699;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .preorder-datetime.active {
+            display: block;
+        }
+
+        .preorder-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #e65100;
+            font-weight: 500;
+        }
+
+        .preorder-info i {
+            color: #ff9800;
+        }
+
+        .datetime-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        /* Form Styles */
+        .checkout-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px;
+            border: 1px solid var(--color-gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(160, 82, 45, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Payment Methods */
+        .payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .payment-method {
+            position: relative;
+        }
+
+        .payment-method input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .payment-method label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border: 2px solid var(--color-primary);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            background-color: rgba(160, 82, 45, 0.05);
+        }
+
+        .payment-method label i {
+            font-size: 24px;
+            color: var(--color-primary);
+        }
+
+        .payment-method label span {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .payment-note {
+            margin-top: 12px;
+            padding: 12px;
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        .payment-note i {
+            font-size: 16px;
+        }
+
+        /* Price Details */
+        .price-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .price-row.total {
+            padding-top: 12px;
+            border-top: 2px solid var(--color-gray-300);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        /* Checkout Actions */
+        .checkout-actions {
+            position: sticky;
+            bottom: 0;
+            background-color: var(--color-white);
+            padding: 16px;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+            margin: 0 -16px;
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: var(--color-white);
+            border: none;
+            border-radius: 8px;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-primary-dark);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #323232;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        .toast.success {
+            background-color: #4caf50;
+        }
+
+        .toast.error {
+            background-color: #f44336;
+        }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            .datetime-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .checkout-actions {
+                position: static;
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+                margin-top: 24px;
+            }
+            
+            .btn-primary {
+                max-width: 400px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <button class="btn-back" onclick="history.back()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="logo-wrapper">
+                    <img src="Screenshot 2025-12-04 131752.png" alt="Sweetify Logo" class="logo-image">
+                    <h1 class="page-title">Checkout</h1>
+                </div>
+                <div></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            
+            <section class="checkout-section">
+                <h2 class="section-title">
+                    <i class="fas fa-shopping-bag"></i> Ringkasan Pesanan
+                </h2>
+                <div class="order-items" id="order-items">
+                    <!-- Items will be loaded here -->
+                </div>
+            </section>
+
+            <section class="checkout-section">
+                <h2 class="section-title">
+                    <i class="fas fa-calendar-alt"></i> Metode Pemesanan
+                </h2>
+                <div class="order-type-options">
+                    <div class="order-type-option">
+                        <input type="radio" name="order-type" id="regular-order" value="regular" checked>
+                        <label for="regular-order">
+                            <i class="fas fa-shopping-bag"></i>
+                            <div class="order-type-info">
+                                <span class="order-type-title">Pesan Sekarang</span>
+                                <span class="order-type-desc">Produk tersedia untuk pengiriman segera</span>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="order-type-option">
+                        <input type="radio" name="order-type" id="preorder" value="preorder">
+                        <label for="preorder">
+                            <i class="fas fa-calendar-check"></i>
+                            <div class="order-type-info">
+                                <span class="order-type-title">Pre-Order</span>
+                                <span class="order-type-desc">Pesan untuk tanggal dan waktu tertentu (H+1)</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="preorder-datetime" id="preorder-datetime">
+                    <div class="preorder-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Pre-order minimal H+1 dari hari ini</span>
+                    </div>
+                    <div class="datetime-grid">
+                        <div class="form-group">
+                            <label for="preorder-date">Tanggal Pengambilan *</label>
+                            <input type="date" id="preorder-date">
+                        </div>
+                        <div class="form-group">
+                            <label for="preorder-time">Waktu Pengambilan *</label>
+                            <input type="time" id="preorder-time">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="checkout-section">
+                <h2 class="section-title">
+                    <i class="fas fa-map-marker-alt"></i> Informasi Pengiriman
+                </h2>
+                <div class="checkout-form" id="delivery-form">
+                    <div class="form-group">
+                        <label for="full-name">Nama Lengkap *</label>
+                        <input type="text" id="full-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Nomor Telepon *</label>
+                        <input type="tel" id="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Alamat Lengkap *</label>
+                        <textarea id="address" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="delivery-method">Metode Pengiriman *</label>
+                        <select id="delivery-method" required>
+                            <option value="">Pilih Metode Pengiriman</option>
+                            <option value="gosend">GoSend (Same Day) - Rp 15.000</option>
+                            <option value="pickup">Ambil di Toko (Gratis)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Catatan (Opsional)</label>
+                        <textarea id="notes" rows="2" placeholder="Contoh: Tolong tambahkan lilin ulang tahun"></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <section class="checkout-section">
+                <h2 class="section-title">
+                    <i class="fas fa-credit-card"></i> Metode Pembayaran
+                </h2>
+                <div class="payment-methods">
+                    <div class="payment-method">
+                        <input type="radio" name="payment" id="qris" value="qris" checked>
+                        <label for="qris">
+                            <i class="fas fa-qrcode"></i>
+                            <span>QRIS (Scan & Bayar)</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="payment-note">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Pembayaran hanya melalui QRIS untuk kemudahan dan kecepatan transaksi</span>
+                </div>
+            </section>
+
+            <section class="checkout-section">
+                <h2 class="section-title">
+                    <i class="fas fa-receipt"></i> Rincian Harga
+                </h2>
+                <div class="price-details">
+                    <div class="price-row">
+                        <span>Subtotal</span>
+                        <span id="subtotal">Rp 0</span>
+                    </div>
+                    <div class="price-row">
+                        <span>Biaya Pengiriman</span>
+                        <span id="delivery-fee">Rp 0</span>
+                    </div>
+                    <div class="price-row total">
+                        <span>Total</span>
+                        <span id="total-amount">Rp 0</span>
+                    </div>
+                </div>
+            </section>
+
+            <div class="checkout-actions">
+                <button class="btn-primary" id="place-order-btn">
+                    <i class="fas fa-check-circle"></i> Buat Pesanan
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Success</span>
+    </div>
+
+    <script>
+        // Supabase Config
+        const SUPABASE_URL = 'https://ylfyixhkowiukaeunzjo.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlsZnlpeGhrb3dpdWthZXVuempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0NDg4NTEsImV4cCI6MjA4MDAyNDg1MX0.x1bD_-kTTyqNWPzj-llbGPIfgWx4YJVDpqMnD1O5WoU';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const APP_CONFIG = { deliveryFee: 15000 };
+        let checkoutCart = [];
+        let deliveryFee = 0;
+
+        // Format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        // Show toast
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            const icon = toast.querySelector('i');
+            
+            toastMessage.textContent = message;
+            toast.className = `toast show ${type}`;
+            
+            if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle';
+            } else {
+                icon.className = 'fas fa-check-circle';
+            }
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Check auth
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            return session?.user || null;
+        }
+
+        // Initialize checkout
+        async function initCheckout() {
+            const user = await checkAuth();
+            if (!user) {
+                showToast('Silakan login terlebih dahulu', 'error');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+                return;
+            }
+
+            // Load cart from localStorage
+            const storedCart = localStorage.getItem('sweetify_cart');
+            checkoutCart = storedCart ? JSON.parse(storedCart) : [];
+
+            if (checkoutCart.length === 0) {
+                showToast('Keranjang Anda kosong!', 'error');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+                return;
+            }
+
+            // Load user profile
+            await loadUserProfile(user);
+
+            // Render order items
+            renderOrderItems();
+
+            // Calculate price
+            calculatePrice();
+
+            // Setup listeners
+            setupListeners();
+        }
+
+        // Load user profile
+        async function loadUserProfile(user) {
+            try {
+                const { data, error } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    document.getElementById('full-name').value = data.full_name || '';
+                    document.getElementById('phone').value = data.phone || '';
+                    document.getElementById('address').value = data.address || '';
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        // Render order items
+        function renderOrderItems() {
+            const orderItemsContainer = document.getElementById('order-items');
+            
+            orderItemsContainer.innerHTML = checkoutCart.map(item => `
+                <div class="order-item">
+                    <img src="${item.image_url || 'https://via.placeholder.com/60'}" 
+                         alt="${item.name}" 
+                         class="order-item-image"
+                         onerror="this.src='https://via.placeholder.com/60?text=No+Image'">
+                    <div class="order-item-info">
+                        <h4 class="order-item-name">${item.name}</h4>
+                        <p class="order-item-price">${formatCurrency(item.price)}</p>
+                        <p class="order-item-qty">Jumlah: ${item.quantity}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Calculate price
+        function calculatePrice() {
+            const deliveryMethod = document.getElementById('delivery-method').value;
+            
+            const subtotal = checkoutCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            if (deliveryMethod === 'gosend') {
+                deliveryFee = APP_CONFIG.deliveryFee;
+            } else {
+                deliveryFee = 0;
+            }
+            
+            const total = subtotal + deliveryFee;
+            
+            document.getElementById('subtotal').textContent = formatCurrency(subtotal);
+            document.getElementById('delivery-fee').textContent = deliveryFee > 0 ? formatCurrency(deliveryFee) : 'Gratis';
+            document.getElementById('total-amount').textContent = formatCurrency(total);
+        }
+
+        // Get minimum date for preorder
+        function getMinDate() {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            return tomorrow.toISOString().split('T')[0];
+        }
+
+        // Validate form
+        function validateForm() {
+            const fullName = document.getElementById('full-name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const deliveryMethod = document.getElementById('delivery-method').value;
+            const orderType = document.querySelector('input[name="order-type"]:checked').value;
+            
+            if (orderType === 'preorder') {
+                const preorderDate = document.getElementById('preorder-date').value;
+                const preorderTime = document.getElementById('preorder-time').value;
+                
+                if (!preorderDate) {
+                    showToast('Tanggal pengambilan harus diisi untuk pre-order', 'error');
+                    return false;
+                }
+                
+                if (!preorderTime) {
+                    showToast('Waktu pengambilan harus diisi untuk pre-order', 'error');
+                    return false;
+                }
+            }
+            
+            if (!fullName) {
+                showToast('Nama lengkap harus diisi', 'error');
+                return false;
+            }
+            
+            if (!phone) {
+                showToast('Nomor telepon harus diisi', 'error');
+                return false;
+            }
+            
+            if (!address) {
+                showToast('Alamat harus diisi', 'error');
+                return false;
+            }
+            
+            if (!deliveryMethod) {
+                showToast('Pilih metode pengiriman', 'error');
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Place order
+        async function placeOrder() {
+            if (!validateForm()) return;
+            
+            const placeOrderBtn = document.getElementById('place-order-btn');
+            placeOrderBtn.disabled = true;
+            placeOrderBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+            
+            try {
+                const user = await checkAuth();
+                if (!user) throw new Error('User not authenticated');
+
+                const orderType = document.querySelector('input[name="order-type"]:checked').value;
+                const fullName = document.getElementById('full-name').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+                const address = document.getElementById('address').value.trim();
+                const deliveryMethod = document.getElementById('delivery-method').value;
+                const notes = document.getElementById('notes').value.trim();
+                
+                const subtotal = checkoutCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const total = subtotal + deliveryFee;
+                
+                // Generate order number
+                const date = new Date();
+                const orderNumber = `SW${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+
+                // Create order data
+                const orderData = {
+                    user_id: user.id,
+                    order_number: orderNumber,
+                    customer_name: fullName,
+                    customer_phone: phone,
+                    customer_address: address,
+                    delivery_method: deliveryMethod,
+                    delivery_fee: deliveryFee,
+                    subtotal: subtotal,
+                    total_amount: total,
+                    notes: notes,
+                    status: 'Menunggu Pembayaran',
+                    payment_method: 'qris',
+                    is_preorder: orderType === 'preorder'
+                };
+
+                // Add preorder details if applicable
+                if (orderType === 'preorder') {
+                    orderData.preorder_date = document.getElementById('preorder-date').value;
+                    orderData.preorder_time = document.getElementById('preorder-time').value;
+                }
+
+                // Insert order
+                const { data: order, error: orderError } = await supabase
+                    .from('orders')
+                    .insert(orderData)
+                    .select()
+                    .single();
+
+                if (orderError) throw orderError;
+
+                // Create order items
+                const orderItems = checkoutCart.map(item => ({
+                    order_id: order.id,
+                    product_id: item.id,
+                    product_name: item.name,
+                    quantity: item.quantity,
+                    price: item.price,
+                    subtotal: item.price * item.quantity,
+                    image_url: item.image_url
+                }));
+
+                const { error: itemsError } = await supabase
+                    .from('order_items')
+                    .insert(orderItems);
+
+                if (itemsError) throw itemsError;
+
+                // Update user profile
+                await supabase
+                    .from('user_profiles')
+                    .update({
+                        full_name: fullName,
+                        phone: phone,
+                        address: address
+                    })
+                    .eq('id', user.id);
+
+                // Clear cart
+                localStorage.removeItem('sweetify_cart');
+
+                showToast('Pesanan berhasil dibuat! Mengarahkan ke halaman pembayaran...', 'success');
+                
+                // Redirect to payment page with order number
+                setTimeout(() => {
+                    // Menggunakan order_number untuk navigasi ke halaman pembayaran
+                    window.location.href = `payment.html?order_number=${order.order_number}`;
+                }, 1500);
+
+            } catch (error) {
+                console.error('Error placing order:', error);
+                showToast('Gagal membuat pesanan: ' + (error.message || 'Terjadi kesalahan sistem.'), 'error');
+            } finally {
+                // Re-enable button and restore text
+                placeOrderBtn.disabled = false;
+                placeOrderBtn.innerHTML = '<i class="fas fa-check-circle"></i> Buat Pesanan';
+            }
+        } // Penutup fungsi placeOrder
+
+        // Setup Listeners (Fungsi ini dipanggil di initCheckout, namun belum didefinisikan)
+        function setupListeners() {
+            // Delivery method change to recalculate price/fee
+            document.getElementById('delivery-method').addEventListener('change', calculatePrice);
+            
+            // Place order button click
+            document.getElementById('place-order-btn').addEventListener('click', placeOrder);
+            
+            // Set minimum date for preorder
+            document.getElementById('preorder-date').setAttribute('min', getMinDate());
+            
+            // Order type radio buttons handler
+            const orderTypeRadios = document.querySelectorAll('input[name="order-type"]');
+            const preorderDatetime = document.getElementById('preorder-datetime');
+            
+            orderTypeRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    if (e.target.value === 'preorder') {
+                        preorderDatetime.classList.add('active');
+                    } else {
+                        preorderDatetime.classList.remove('active');
+                    }
+                    calculatePrice();
+                });
+            });
+        }
+
+        // Initialize checkout on load
+        document.addEventListener('DOMContentLoaded', initCheckout);
+    </script>
+</body>
+</html>

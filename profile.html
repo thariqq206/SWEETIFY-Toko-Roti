@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Saya - Sweetify</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-primary: #a0522d;
+            --color-primary-dark: #8b4513;
+            --color-secondary: #d2691e;
+            --color-text: #2c3e50;
+            --color-text-light: #7f8c8d;
+            --color-background: #f8f9fa;
+            --color-white: #ffffff;
+            --color-gray-100: #f8f9fa;
+            --color-gray-200: #e9ecef;
+            --color-gray-300: #dee2e6;
+            --color-success: #28a745;
+            --color-danger: #dc3545;
+            --color-warning: #ffc107;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text);
+            padding-bottom: 80px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            color: white;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* Profile Header Card */
+        .profile-header-card {
+            background: linear-gradient(135deg, #a0522d 0%, #d68d59 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 40px 24px;
+            text-align: center;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-avatar-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+        }
+
+        .profile-avatar-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 4px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .profile-avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn-change-avatar {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            border: 3px solid white;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-change-avatar:hover {
+            background: var(--color-primary-dark);
+            transform: scale(1.1);
+        }
+
+        .profile-name {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .profile-email {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Profile Section */
+        .profile-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--color-gray-200);
+        }
+
+        .section-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #a0522d 0%, #d67f56 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Info Display */
+        .info-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--color-text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-text);
+            padding: 12px;
+            background: var(--color-gray-100);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .password-value {
+            flex: 1;
+            font-family: monospace;
+        }
+
+        .btn-toggle-password {
+            background: none;
+            border: none;
+            color: var(--color-primary);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .btn-toggle-password:hover {
+            background: rgba(160, 82, 45, 0.1);
+        }
+
+        /* Form */
+        .profile-form {
+            display: none;
+        }
+
+        .profile-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--color-text);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--color-gray-300);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(160, 82, 45, 0.1);
+        }
+
+        .form-control:disabled {
+            background: var(--color-gray-200);
+            cursor: not-allowed;
+        }
+
+        .form-helper {
+            font-size: 12px;
+            color: var(--color-text-light);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary {
+            background: var(--color-gray-200);
+            color: var(--color-text);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-gray-300);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(160, 82, 45, 0.3);
+        }
+
+        .btn-logout {
+            width: 100%;
+            background: linear-gradient(135deg, #b06d20 0%, #b06d20 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            margin-top: 24px;
+        }
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            color: var(--color-text);
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--color-success);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--color-danger);
+        }
+
+        .toast.warning {
+            border-left: 4px solid var(--color-warning);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--color-text-light);
+            text-decoration: none;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item.active {
+            color: var(--color-primary);
+        }
+
+        .nav-item i {
+            font-size: 20px;
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--color-gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--color-text-light);
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .btn-close:hover {
+            background: var(--color-gray-200);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        /* Avatar Upload */
+        #avatar-upload {
+            display: none;
+        }
+
+        .avatar-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            overflow: hidden;
+            border: 4px solid var(--color-gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-gray-100);
+        }
+
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn-upload {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            background: var(--color-gray-200);
+            border: 2px dashed var(--color-gray-300);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--color-text);
+            font-weight: 600;
+        }
+
+        .btn-upload:hover {
+            background: var(--color-gray-300);
+            border-color: var(--color-primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <button class="btn-back" id="btn-back">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 class="page-title">Profil Saya</h1>
+            <div></div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Profile Header -->
+            <div class="profile-header-card">
+                <div class="profile-avatar-container">
+                    <div class="profile-avatar-large" id="profile-avatar">
+                        <span id="avatar-initials">U</span>
+                    </div>
+                    <button class="btn-change-avatar" onclick="openAvatarModal()">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                </div>
+                <h2 class="profile-name" id="profile-name">Loading...</h2>
+                <p class="profile-email" id="profile-email">Loading...</p>
+            </div>
+
+            <!-- Profile Info Section -->
+            <div class="profile-section">
+                <div class="section-header">
+                    <h3>
+                        <i class="fas fa-user-circle"></i> Informasi Akun
+                    </h3>
+                    <button class="btn-edit" id="btn-toggle-edit" onclick="toggleEditMode()">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                </div>
+
+                <!-- Display Mode -->
+                <div class="info-grid" id="info-display">
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-user"></i> Nama Lengkap
+                        </div>
+                        <div class="info-value" id="display-name">-</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-envelope"></i> Email
+                        </div>
+                        <div class="info-value" id="display-email">-</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-lock"></i> Kata Sandi
+                        </div>
+                        <div class="info-value">
+                            <span class="password-value" id="display-password">••••••••</span>
+                            <button class="btn-toggle-password" onclick="togglePassword()" title="Lihat password">
+                                <i class="fas fa-eye" id="password-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-phone"></i> Nomor Telepon
+                        </div>
+                        <div class="info-value" id="display-phone">Belum diisi</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-map-marker-alt"></i> Alamat
+                        </div>
+                        <div class="info-value" id="display-address">Belum diisi</div>
+                    </div>
+                </div>
+
+                <!-- Edit Form -->
+                <form class="profile-form" id="profile-form" onsubmit="handleUpdateProfile(event)">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-user"></i> Nama Lengkap *
+                        </label>
+                        <input type="text" class="form-control" id="edit-name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-envelope"></i> Email
+                        </label>
+                        <input type="email" class="form-control" id="edit-email" disabled>
+                        <div class="form-helper">
+                            <i class="fas fa-info-circle"></i> Email tidak dapat diubah
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-lock"></i> Kata Sandi Baru
+                        </label>
+                        <input type="password" class="form-control" id="edit-password" placeholder="Kosongkan jika tidak ingin mengubah">
+                        <div class="form-helper">
+                            <i class="fas fa-info-circle"></i> Minimal 6 karakter
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-phone"></i> Nomor Telepon *
+                        </label>
+                        <input type="tel" class="form-control" id="edit-phone" required placeholder="08xxxxxxxxxx">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-map-marker-alt"></i> Alamat Lengkap *
+                        </label>
+                        <textarea class="form-control" id="edit-address" rows="3" required placeholder="Jl. Contoh No. 123, Kota"></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="cancelEdit()">
+                            <i class="fas fa-times"></i> Batal
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Logout Button -->
+            <button class="btn-logout" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i> Keluar dari Akun
+            </button>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav" id="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Beranda</span>
+        </a>
+        <a href="index.html#cart" class="nav-item">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Keranjang</span>
+        </a>
+        <a href="orders.html" class="nav-item">
+            <i class="fas fa-receipt"></i>
+            <span>Pesanan</span>
+        </a>
+        <a href="profile.html" class="nav-item active">
+            <i class="fas fa-user"></i>
+            <span>Akun</span>
+        </a>
+    </nav>
+
+    <!-- Avatar Modal -->
+    <div class="modal" id="avatar-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-camera"></i> Ganti Foto Profil</h3>
+                <button class="btn-close" onclick="closeAvatarModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="avatar-preview" id="avatar-preview">
+                    <i class="fas fa-user" style="font-size: 50px; color: var(--color-gray-300);"></i>
+                </div>
+                <input type="file" id="avatar-upload" accept="image/*" onchange="handleAvatarSelect(event)">
+                <label for="avatar-upload" class="btn-upload">
+                    <i class="fas fa-upload"></i> Pilih Foto
+                </label>
+                <div class="form-actions" style="margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeAvatarModal()">
+                        Batal
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="handleAvatarUpload()">
+                        <i class="fas fa-check"></i> Simpan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message"></span>
+    </div>
+
+    <script>
+        // Supabase Config
+        const SUPABASE_URL = 'https://ylfyixhkowiukaeunzjo.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlsZnlpeGhrb3dpdWthZXVuempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0NDg4NTEsImV4cCI6MjA4MDAyNDg1MX0.x1bD_-kTTyqNWPzj-llbGPIfgWx4YJVDpqMnD1O5WoU';
+        const ADMIN_EMAIL = 'naufalthariq21@gmail.com';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+        let userProfile = null;
+        let isEditMode = false;
+        let passwordVisible = false;
+        let selectedAvatarFile = null;
+        let isAdmin = false;
+        let actualPassword = ''; // Store actual password temporarily
+
+        // Initialize
+        async function init() {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (!session) {
+                showToast('Silakan login terlebih dahulu', 'error');
+                setTimeout(() => window.location.href = 'index.html', 1500);
+                return;
+            }
+
+            currentUser = session.user;
+            
+            // Check if admin
+            isAdmin = currentUser.email === ADMIN_EMAIL;
+            
+            // Setup back button
+            const btnBack = document.getElementById('btn-back');
+            if (btnBack) {
+                btnBack.onclick = () => {
+                    if (isAdmin) {
+                        window.location.href = 'admin.html';
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                };
+            }
+            
+            // Add admin badge if admin
+            if (isAdmin) {
+                const profileName = document.getElementById('profile-name');
+                if (profileName) {
+                    setTimeout(() => {
+                        profileName.innerHTML += ' <span style="background: rgba(255,255,255,0.3); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-left: 8px;">👑 ADMIN</span>';
+                    }, 100);
+                }
+                
+                // Hide bottom navigation for admin
+                const bottomNav = document.getElementById('bottom-nav');
+                if (bottomNav) {
+                    bottomNav.style.display = 'none';
+                }
+                
+                // Adjust body padding if bottom nav is hidden
+                document.body.style.paddingBottom = '20px';
+            }
+            
+            await loadProfile();
+        }
+
+        // Load Profile
+        async function loadProfile() {
+            try {
+                // Load from database
+                const { data, error } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') throw error;
+
+                if (!data) {
+                    // Create profile
+                    await supabase.from('user_profiles').insert({
+                        id: currentUser.id,
+                        full_name: currentUser.user_metadata?.full_name || '',
+                        email: currentUser.email,
+                        phone: '',
+                        address: '',
+                        avatar_url: ''
+                    });
+                    await loadProfile();
+                    return;
+                }
+
+                userProfile = data;
+                
+                // Store password info (simulated for display purposes)
+                actualPassword = '********'; // We can't retrieve actual password
+                
+                displayProfile();
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal memuat profil', 'error');
+            }
+        }
+
+        // Display Profile
+        function displayProfile() {
+            const name = userProfile.full_name || currentUser.email.split('@')[0];
+            const initials = getInitials(name);
+
+            // Header
+            document.getElementById('profile-name').textContent = name;
+            document.getElementById('profile-email').textContent = currentUser.email;
+
+            // Avatar
+            const avatarEl = document.getElementById('profile-avatar');
+            if (userProfile.avatar_url) {
+                avatarEl.innerHTML = `<img src="${userProfile.avatar_url}" alt="Avatar">`;
+            } else {
+                avatarEl.innerHTML = `<span id="avatar-initials">${initials}</span>`;
+            }
+
+            // Display info
+            document.getElementById('display-name').textContent = name;
+            document.getElementById('display-email').textContent = currentUser.email;
+            document.getElementById('display-phone').textContent = userProfile.phone || 'Belum diisi';
+            document.getElementById('display-address').textContent = userProfile.address || 'Belum diisi';
+
+            // Edit form
+            document.getElementById('edit-name').value = name;
+            document.getElementById('edit-email').value = currentUser.email;
+            document.getElementById('edit-phone').value = userProfile.phone || '';
+            document.getElementById('edit-address').value = userProfile.address || '';
+        }
+
+        // Toggle Edit Mode
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const display = document.getElementById('info-display');
+            const form = document.getElementById('profile-form');
+            const btn = document.getElementById('btn-toggle-edit');
+
+            if (isEditMode) {
+                display.classList.add('hidden');
+                form.classList.add('active');
+                btn.innerHTML = '<i class="fas fa-times"></i> Batal';
+            } else {
+                display.classList.remove('hidden');
+                form.classList.remove('active');
+                btn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+            }
+        }
+
+        // Cancel Edit
+        function cancelEdit() {
+            toggleEditMode();
+            displayProfile(); // Reset form
+        }
+
+        // Update Profile
+        async function handleUpdateProfile(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('edit-name').value.trim();
+            const password = document.getElementById('edit-password').value.trim();
+            const phone = document.getElementById('edit-phone').value.trim();
+            const address = document.getElementById('edit-address').value.trim();
+
+            if (!name || !phone || !address) {
+                showToast('Semua field wajib diisi', 'error');
+                return;
+            }
+
+            try {
+                // Update profile in database
+                const { error: profileError } = await supabase
+                    .from('user_profiles')
+                    .update({
+                        full_name: name,
+                        phone: phone,
+                        address: address
+                    })
+                    .eq('id', currentUser.id);
+
+                if (profileError) throw profileError;
+
+                // Update password if provided
+                if (password) {
+                    if (password.length < 6) {
+                        showToast('Password minimal 6 karakter', 'error');
+                        return;
+                    }
+
+                    const { error: passwordError } = await supabase.auth.updateUser({
+                        password: password
+                    });
+
+                    if (passwordError) throw passwordError;
+                    showToast('Profil dan password berhasil diperbarui!', 'success');
+                    actualPassword = '********'; // Reset display
+                } else {
+                    showToast('Profil berhasil diperbarui!', 'success');
+                }
+
+                // Reload profile data and switch back to display mode
+                await loadProfile();
+                toggleEditMode();
+
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showToast(`Gagal memperbarui profil: ${error.message}`, 'error');
+            }
+        }
+
+        // Toggle Password Visibility
+        function togglePassword() {
+            passwordVisible = !passwordVisible;
+            const displayPassword = document.getElementById('display-password');
+            const passwordIcon = document.getElementById('password-icon');
+            
+            if (passwordVisible) {
+                // Show password (but we show a message since we can't retrieve actual password)
+                displayPassword.textContent = actualPassword;
+                passwordIcon.className = 'fas fa-eye-slash';
+                
+                // Show info toast
+                showToast('Password telah dienkripsi dan tidak dapat ditampilkan', 'warning');
+            } else {
+                // Hide password
+                displayPassword.textContent = '••••••••';
+                passwordIcon.className = 'fas fa-eye';
+            }
+        }
+
+        // Handle Logout
+        async function handleLogout() {
+            if (!confirm('Apakah Anda yakin ingin keluar?')) {
+                return;
+            }
+            
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+                
+                showToast('Berhasil keluar!', 'success');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+            } catch (error) {
+                console.error('Error logging out:', error);
+                showToast('Gagal keluar, coba lagi', 'error');
+            }
+        }
+
+        // Utility: Get Initials for Avatar Placeholder
+        function getInitials(name) {
+            if (!name) return 'U';
+            const parts = name.split(' ').filter(part => part.length > 0);
+            if (parts.length > 1) {
+                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            }
+            return name[0].toUpperCase();
+        }
+
+        // Utility: Show Toast Notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            const toastIcon = toast.querySelector('i');
+            
+            toastMessage.textContent = message;
+            toast.className = `toast show ${type}`;
+            
+            // Set icon based on type
+            if (type === 'success') {
+                toastIcon.className = 'fas fa-check-circle';
+            } else if (type === 'error') {
+                toastIcon.className = 'fas fa-times-circle';
+            } else if (type === 'warning') {
+                toastIcon.className = 'fas fa-exclamation-triangle';
+            }
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.className = 'toast';
+            }, 3000);
+        }
+        
+        // Modal Functions for Avatar
+        function openAvatarModal() {
+            document.getElementById('avatar-modal').classList.add('show');
+            
+            // Set initial preview based on current profile
+            const avatarPreview = document.getElementById('avatar-preview');
+            if (userProfile && userProfile.avatar_url) {
+                avatarPreview.innerHTML = `<img src="${userProfile.avatar_url}" alt="Preview">`;
+            } else {
+                avatarPreview.innerHTML = `<i class="fas fa-user" style="font-size: 50px; color: var(--color-gray-300);"></i>`;
+            }
+        }
+
+        function closeAvatarModal() {
+            document.getElementById('avatar-modal').classList.remove('show');
+            selectedAvatarFile = null;
+            document.getElementById('avatar-upload').value = '';
+        }
+
+        function handleAvatarSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showToast('File harus berupa gambar', 'error');
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Ukuran file maksimal 5MB', 'error');
+                return;
+            }
+
+            selectedAvatarFile = file;
+            
+            // Display image preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('avatar-preview').innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function handleAvatarUpload() {
+            if (!selectedAvatarFile) {
+                showToast('Pilih foto terlebih dahulu', 'warning');
+                return;
+            }
+
+            try {
+                showToast('Mengunggah foto...', 'success');
+                
+                // Using the user ID to create a unique path
+                const fileExt = selectedAvatarFile.name.split('.').pop();
+                const fileName = `${currentUser.id}_${Date.now()}.${fileExt}`;
+                const filePath = `avatars/${fileName}`;
+
+                // Upload file to Supabase storage
+                const { error: uploadError } = await supabase.storage
+                    .from('avatars') 
+                    .upload(filePath, selectedAvatarFile, {
+                        cacheControl: '3600',
+                        upsert: true
+                    });
+
+                if (uploadError) throw uploadError;
+
+                // Get public URL
+                const { data: publicUrlData } = supabase.storage
+                    .from('avatars')
+                    .getPublicUrl(filePath);
+                
+                const newAvatarUrl = publicUrlData.publicUrl;
+
+                // Update profile with new avatar URL
+                const { error: updateError } = await supabase
+                    .from('user_profiles')
+                    .update({ avatar_url: newAvatarUrl })
+                    .eq('id', currentUser.id);
+
+                if (updateError) throw updateError;
+                
+                // Success
+                closeAvatarModal();
+                await loadProfile();
+                showToast('Foto profil berhasil diperbarui!', 'success');
+            } catch (error) {
+                console.error('Error uploading avatar:', error);
+                showToast('Gagal mengunggah foto profil. Pastikan bucket "avatars" sudah dibuat di Supabase Storage.', 'error');
+            }
+        }
+        
+        // Start initialization
+        init();
+    </script>
+
+</body>
+</html>

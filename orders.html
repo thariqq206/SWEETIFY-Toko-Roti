@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesanan Saya - Sweetify</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 16px;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #333;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-image {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .order-tabs-wrapper {
+            background-color: white;
+            position: sticky;
+            top: 60px;
+            z-index: 50;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin: 0 -16px 16px;
+            padding: 0 16px;
+        }
+
+        .order-tabs {
+            display: flex;
+            overflow-x: auto;
+            gap: 0;
+            scrollbar-width: none;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .order-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-btn {
+            flex-shrink: 0;
+            background: none;
+            border: none;
+            padding: 12px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tab-btn i {
+            font-size: 18px;
+        }
+
+        .tab-btn.active {
+            color: #A0522D;
+            border-bottom-color: #A0522D;
+        }
+
+        .orders-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .order-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .order-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid #e0e0e0;
+            background-color: #f8f8f8;
+        }
+
+        .order-shop-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .order-shop-info i {
+            color: #A0522D;
+            font-size: 14px;
+        }
+
+        .order-shop-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .order-status-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .order-status-badge {
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .order-status-badge.Menunggu {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .order-status-badge.Diproses {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .order-status-badge.Dikirim {
+            background-color: #cfe2ff;
+            color: #084298;
+        }
+
+        .order-status-badge.Selesai {
+            background-color: #d1e7dd;
+            color: #0a3622;
+        }
+
+        .order-status-badge.Dibatalkan {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .order-rating-display {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: #ffc107;
+            background: #fff8e1;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .order-rating-display i {
+            font-size: 12px;
+        }
+
+        .preorder-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: #fff3cd;
+            color: #856404;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 6px;
+        }
+
+        .preorder-date-info {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .preorder-date-info i {
+            color: #ff9800;
+        }
+
+        .order-card-body {
+            padding: 14px;
+        }
+
+        .order-product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .order-product-item {
+            display: flex;
+            gap: 10px;
+        }
+
+        .order-product-image {
+            width: 65px;
+            height: 65px;
+            border-radius: 6px;
+            object-fit: cover;
+            border: 1px solid #e0e0e0;
+        }
+
+        .order-product-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .order-product-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+            line-height: 1.3;
+        }
+
+        .order-product-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        .order-product-qty {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .order-product-price {
+            font-size: 13px;
+            font-weight: 600;
+            color: #A0522D;
+        }
+
+        .order-total-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .order-total-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .order-total-price {
+            font-size: 16px;
+            font-weight: bold;
+            color: #A0522D;
+        }
+
+        .order-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-top: 1px solid #e0e0e0;
+            background-color: #fafafa;
+        }
+
+        .order-footer-left {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .order-footer-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-order-action {
+            padding: 6px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid #ddd;
+            background-color: white;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .btn-order-action.primary {
+            background-color: #A0522D;
+            color: white;
+            border-color: #A0522D;
+        }
+
+        .btn-order-action.whatsapp {
+            background-color: #25D366;
+            color: white;
+            border-color: #25D366;
+        }
+
+        .btn-order-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Rating Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .product-rating-item {
+            padding: 16px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .product-rating-item:last-child {
+            border-bottom: none;
+        }
+
+        .rating-product-info {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .rating-product-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .rating-product-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 8px;
+            margin: 16px 0;
+        }
+
+        .star-rating i {
+            font-size: 32px;
+            color: #ddd;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .star-rating i.active,
+        .star-rating i:hover {
+            color: #ffc107;
+        }
+
+        .rating-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn-submit-rating {
+            width: 100%;
+            padding: 12px;
+            background-color: #A0522D;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+        }
+
+        .btn-submit-rating:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .btn-primary {
+            background-color: #A0522D;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading i {
+            font-size: 32px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+        }
+
+        .nav-item.active {
+            color: #A0522D;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #323232;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        .toast.success {
+            background-color: #4caf50;
+        }
+
+        .toast.error {
+            background-color: #f44336;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    
+    <header class="header">
+        <div class="header-content">
+            <button class="btn-back" onclick="window.location.href='index.html'">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="header-title">
+                <img src="Screenshot 2025-12-04 131752.png" alt="Sweetify" class="logo-image">
+                <h1 class="page-title">Pesanan Saya</h1>
+            </div>
+            <div></div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="order-tabs-wrapper">
+                <div class="order-tabs">
+                    <button class="tab-btn active" data-status="all">
+                        <i class="fas fa-list"></i>
+                        <span>Semua</span>
+                    </button>
+                    <button class="tab-btn" data-status="Menunggu">
+                        <i class="fas fa-clock"></i>
+                        <span>Menunggu</span>
+                    </button>
+                    <button class="tab-btn" data-status="Diproses">
+                        <i class="fas fa-box"></i>
+                        <span>Diproses</span>
+                    </button>
+                    <button class="tab-btn" data-status="Dikirim">
+                        <i class="fas fa-truck"></i>
+                        <span>Dikirim</span>
+                    </button>
+                    <button class="tab-btn" data-status="Selesai">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Selesai</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="orders-container" id="orders-container"></div>
+            
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner"></i>
+                <p>Memuat pesanan...</p>
+            </div>
+            
+            <div class="empty-state hidden" id="empty-state">
+                <i class="fas fa-box-open"></i>
+                <h3>Belum Ada Pesanan</h3>
+                <p>Yuk, mulai belanja sekarang!</p>
+                <button class="btn-primary" onclick="window.location.href='index.html'">
+                    <i class="fas fa-shopping-bag"></i> Belanja Sekarang
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Rating Modal -->
+    <div class="modal-overlay" id="rating-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Beri Rating</h2>
+                <button class="btn-close" onclick="closeRatingModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="rating-content"></div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Beranda</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Keranjang</span>
+        </a>
+        <a href="orders.html" class="nav-item active">
+            <i class="fas fa-receipt"></i>
+            <span>Pesanan</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>Akun</span>
+        </a>
+    </nav>
+
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Success</span>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ylfyixhkowiukaeunzjo.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlsZnlpeGhrb3dpdWthZXVuempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0NDg4NTEsImV4cCI6MjA4MDAyNDg1MX0.x1bD_-kTTyqNWPzj-llbGPIfgWx4YJVDpqMnD1O5WoU';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let allOrders = [];
+        let currentFilter = 'all';
+        let lastOrderStatuses = {};
+        let currentOrderId = null;
+        let orderRatings = {};
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            const options = { day: 'numeric', month: 'short', year: 'numeric' };
+            return new Date(dateString).toLocaleDateString('id-ID', options);
+        }
+
+        function formatDateTime(dateString, timeString) {
+            const date = formatDate(dateString);
+            return timeString ? `${date}, ${timeString}` : date;
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            const icon = toast.querySelector('i');
+            
+            toastMessage.textContent = message;
+            toast.className = `toast show ${type}`;
+            
+            if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle';
+            } else {
+                icon.className = 'fas fa-check-circle';
+            }
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            return session?.user || null;
+        }
+
+        function createNotification(orderId, orderNumber, status) {
+            const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            if (!user) return;
+
+            const notifKey = `sweetify_notifications_${user.id}`;
+            let notifications = [];
+            
+            try {
+                const stored = localStorage.getItem(notifKey);
+                notifications = stored ? JSON.parse(stored) : [];
+            } catch (error) {
+                console.error('Error:', error);
+            }
+
+            const messages = {
+                'Diproses': `Pesanan ${orderNumber} sedang diproses. Kami akan segera mengirimkan pesanan Anda.`,
+                'Dikirim': `Pesanan ${orderNumber} sedang dalam pengiriman. Mohon menunggu ya!`,
+                'Selesai': `Pesanan ${orderNumber} telah selesai. Terima kasih telah berbelanja di Sweetify!`,
+                'Dibatalkan': `Pesanan ${orderNumber} telah dibatalkan.`
+            };
+
+            const notification = {
+                id: 'notif_' + Date.now(),
+                order_id: orderId,
+                order_number: orderNumber,
+                status: status,
+                message: messages[status] || 'Status pesanan diperbarui',
+                created_at: new Date().toISOString(),
+                read: false
+            };
+
+            notifications.unshift(notification);
+            localStorage.setItem(notifKey, JSON.stringify(notifications));
+        }
+
+        function checkStatusChanges(newOrders) {
+            newOrders.forEach(order => {
+                const oldStatus = lastOrderStatuses[order.id];
+                
+                if (oldStatus && oldStatus !== order.status) {
+                    if (['Diproses', 'Dikirim', 'Selesai', 'Dibatalkan'].includes(order.status)) {
+                        createNotification(order.id, order.order_number, order.status);
+                        showToast(`Pesanan ${order.order_number} - ${order.status}`, 'success');
+                    }
+                }
+                
+                lastOrderStatuses[order.id] = order.status;
+            });
+        }
+
+        function getProductImage(productName) {
+            const productsKey = 'sweetify_products';
+            const stored = localStorage.getItem(productsKey);
+            
+            if (stored) {
+                try {
+                    const products = JSON.parse(stored);
+                    const product = products.find(p => 
+                        p.name.toLowerCase() === productName.toLowerCase()
+                    );
+                    if (product && product.image_url) {
+                        return product.image_url;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+            
+            return 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=200&h=200&fit=crop';
+        }
+
+        async function loadOrderRatings(userId) {
+            try {
+                const { data, error } = await supabase
+                    .from('ratings')
+                    .select('order_id, product_id, rating')
+                    .eq('user_id', userId);
+                
+                if (error) throw error;
+                
+                // Group ratings by order_id
+                orderRatings = {};
+                if (data) {
+                    data.forEach(rating => {
+                        if (!orderRatings[rating.order_id]) {
+                            orderRatings[rating.order_id] = [];
+                        }
+                        orderRatings[rating.order_id].push(rating);
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error loading ratings:', error);
+            }
+        }
+
+        function getAverageRating(orderId) {
+            const ratings = orderRatings[orderId];
+            if (!ratings || ratings.length === 0) return null;
+            
+            const sum = ratings.reduce((acc, r) => acc + r.rating, 0);
+            return (sum / ratings.length).toFixed(1);
+        }
+
+        function hasRated(orderId) {
+            return orderRatings[orderId] && orderRatings[orderId].length > 0;
+        }
+
+        async function initOrders() {
+            const user = await checkAuth();
+            if (!user) {
+                showToast('Silakan login terlebih dahulu', 'error');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+                return;
+            }
+            
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            await loadOrderRatings(user.id);
+            await loadOrders();
+            setupOrdersListeners();
+            startAutoRefresh();
+        }
+
+        async function loadOrders() {
+            const loading = document.getElementById('loading');
+            const ordersContainer = document.getElementById('orders-container');
+            const emptyState = document.getElementById('empty-state');
+            
+            try {
+                loading.classList.remove('hidden');
+                ordersContainer.innerHTML = '';
+                emptyState.classList.add('hidden');
+                
+                const user = await checkAuth();
+                
+                const { data, error } = await supabase
+                    .from('orders')
+                    .select(`
+                        *,
+                        order_items (
+                            product_id,
+                            product_name,
+                            price,
+                            quantity,
+                            subtotal
+                        )
+                    `)
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                if (allOrders.length > 0) {
+                    checkStatusChanges(data || []);
+                }
+                
+                allOrders = data || [];
+                
+                allOrders.forEach(order => {
+                    if (!lastOrderStatuses[order.id]) {
+                        lastOrderStatuses[order.id] = order.status;
+                    }
+                });
+                
+                // Reload ratings to check if new ratings were added
+                await loadOrderRatings(user.id);
+                
+                if (allOrders.length === 0) {
+                    emptyState.classList.remove('hidden');
+                } else {
+                    renderOrders();
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal memuat pesanan', 'error');
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        function renderOrders() {
+            const ordersContainer = document.getElementById('orders-container');
+            const emptyState = document.getElementById('empty-state');
+            
+            let filteredOrders = allOrders;
+            
+            if (currentFilter !== 'all') {
+                filteredOrders = allOrders.filter(o => o.status === currentFilter);
+            }
+            
+            if (filteredOrders.length === 0) {
+                ordersContainer.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            ordersContainer.innerHTML = filteredOrders.map(order => {
+                const orderDate = new Date(order.created_at).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                
+                const avgRating = getAverageRating(order.id);
+                const ratingDisplay = avgRating ? `
+                    <div class="order-rating-display">
+                        <i class="fas fa-star"></i>
+                        <span>${avgRating}</span>
+                    </div>
+                ` : '';
+                
+                const isRated = hasRated(order.id);
+                
+                const preorderBadge = order.is_preorder ? 
+                    `<span class="preorder-badge"><i class="fas fa-calendar-check"></i> Pre-Order</span>` : '';
+                
+                const preorderInfo = order.is_preorder && order.preorder_date ? 
+                    `<div class="preorder-date-info"><i class="fas fa-clock"></i> ${formatDateTime(order.preorder_date, order.preorder_time)}</div>` : '';
+                
+                return `
+                    <div class="order-card">
+                        <div class="order-card-header">
+                            <div class="order-shop-info">
+                                <i class="fas fa-store"></i>
+                                <span class="order-shop-name">Sweetify</span>
+                            </div>
+                            <div class="order-status-section">
+                                <span class="order-status-badge ${order.status}">${order.status}</span>
+                                ${ratingDisplay}
+                            </div>
+                        </div>
+                        
+                        <div class="order-card-body">
+                            <div style="margin-bottom: 10px;">
+                                ${preorderBadge}
+                                ${preorderInfo}
+                            </div>
+                            
+                            <div class="order-product-list">
+                                ${order.order_items.slice(0, 2).map(item => {
+                                    const imageUrl = getProductImage(item.product_name);
+                                    return `
+                                        <div class="order-product-item">
+                                            <img src="${imageUrl}" 
+                                                 alt="${item.product_name}" 
+                                                 class="order-product-image"
+                                                 onerror="this.src='https://via.placeholder.com/65x65/F5DEB3/8B4513?text=IMG'">
+                                            <div class="order-product-info">
+                                                <div class="order-product-name">${item.product_name}</div>
+                                                <div class="order-product-meta">
+                                                    <span class="order-product-qty">x${item.quantity}</span>
+                                                    <span class="order-product-price">${formatCurrency(item.subtotal)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                                ${order.order_items.length > 2 ? `
+                                    <div style="text-align: center; font-size: 11px; color: #666; padding: 4px 0;">
+                                        +${order.order_items.length - 2} produk lainnya
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="order-total-section">
+                                <span class="order-total-label">${order.order_items.length} Produk</span>
+                                <div>
+                                    <span class="order-total-label">Total: </span>
+                                    <span class="order-total-price">${formatCurrency(order.total_amount)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="order-card-footer">
+                            <div class="order-footer-left">
+                                <i class="far fa-clock"></i> ${orderDate}
+                            </div>
+                            <div class="order-footer-actions">
+                                <button class="btn-order-action whatsapp" onclick="contactAdmin('${order.order_number}')">
+                                    <i class="fab fa-whatsapp"></i> Hubungi
+                                </button>
+                                ${order.status === 'Selesai' && !isRated ? `
+                                    <button class="btn-order-action primary" onclick="showRatingModal('${order.id}')">
+                                        <i class="fas fa-star"></i> Nilai
+                                    </button>
+                                ` : ''}
+                                ${order.status === 'Selesai' && isRated ? `
+                                    <button class="btn-order-action" disabled>
+                                        <i class="fas fa-check"></i> Dinilai
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function contactAdmin(orderNumber) {
+            const message = `Halo Admin Sweetify, saya ingin bertanya tentang pesanan saya:\n\nNo. Pesanan: ${orderNumber}`;
+            const whatsappUrl = `https://wa.me/62895802370400?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        async function showRatingModal(orderId) {
+            // Check if already rated
+            if (hasRated(orderId)) {
+                showToast('Anda sudah memberikan rating untuk pesanan ini', 'error');
+                return;
+            }
+            
+            currentOrderId = orderId;
+            const modal = document.getElementById('rating-modal');
+            const content = document.getElementById('rating-content');
+            
+            try {
+                const order = allOrders.find(o => o.id === orderId);
+                if (!order) return;
+                
+                content.innerHTML = `
+                    <p style="margin-bottom: 20px; color: #666;">Bagaimana pengalaman Anda dengan produk ini?</p>
+                    ${order.order_items.map((item, index) => {
+                        const imageUrl = getProductImage(item.product_name);
+                        return `
+                            <div class="product-rating-item">
+                                <div class="rating-product-info">
+                                    <img src="${imageUrl}" 
+                                         alt="${item.product_name}" 
+                                         class="rating-product-image"
+                                         onerror="this.src='https://via.placeholder.com/60'">
+                                    <div>
+                                        <div class="rating-product-name">${item.product_name}</div>
+                                        <div style="font-size: 12px; color: #666;">x${item.quantity}</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="star-rating" data-product-id="${item.product_id}">
+                                    <i class="far fa-star" data-rating="1"></i>
+                                    <i class="far fa-star" data-rating="2"></i>
+                                    <i class="far fa-star" data-rating="3"></i>
+                                    <i class="far fa-star" data-rating="4"></i>
+                                    <i class="far fa-star" data-rating="5"></i>
+                                </div>
+                                
+                                <textarea class="rating-textarea" data-product-id="${item.product_id}" placeholder="Tulis ulasan Anda..."></textarea>
+                                
+                                <input type="hidden" class="rating-value" data-product-id="${item.product_id}" value="0">
+                            </div>
+                        `;
+                    }).join('')}
+                    
+                    <button class="btn-submit-rating" onclick="submitRatings()">Kirim Penilaian</button>
+                `;
+                
+                modal.classList.add('show');
+                setupStarRatingListeners();
+            } catch (error) {
+                console.error('Error showing rating modal:', error);
+                showToast('Gagal memuat detail rating', 'error');
+            }
+        }
+
+        function closeRatingModal() {
+            document.getElementById('rating-modal').classList.remove('show');
+            currentOrderId = null;
+        }
+
+        function setupStarRatingListeners() {
+            document.querySelectorAll('.star-rating').forEach(starContainer => {
+                const productId = starContainer.dataset.productId;
+                const stars = starContainer.querySelectorAll('i');
+                const ratingValueInput = document.querySelector(`.rating-value[data-product-id="${productId}"]`);
+
+                stars.forEach(star => {
+                    star.addEventListener('click', function() {
+                        const rating = parseInt(this.dataset.rating);
+                        ratingValueInput.value = rating;
+                        updateStarDisplay(starContainer, rating);
+                    });
+                    
+                    star.addEventListener('mouseover', function() {
+                        const rating = parseInt(this.dataset.rating);
+                        updateStarDisplay(starContainer, rating, true);
+                    });
+
+                    star.addEventListener('mouseout', function() {
+                        const currentRating = parseInt(ratingValueInput.value);
+                        updateStarDisplay(starContainer, currentRating);
+                    });
+                });
+            });
+        }
+
+        function updateStarDisplay(starContainer, rating, isHover = false) {
+            const stars = starContainer.querySelectorAll('i');
+            stars.forEach(star => {
+                const starRating = parseInt(star.dataset.rating);
+                if (starRating <= rating) {
+                    star.classList.remove('far');
+                    star.classList.add('fas', 'active');
+                } else {
+                    star.classList.remove('fas', 'active');
+                    star.classList.add('far');
+                }
+            });
+        }
+
+        async function submitRatings() {
+            if (!currentOrderId) return;
+
+            const user = await checkAuth();
+            if (!user) {
+                showToast('Silakan login terlebih dahulu', 'error');
+                return;
+            }
+            
+            // Check again if already rated
+            if (hasRated(currentOrderId)) {
+                showToast('Anda sudah memberikan rating untuk pesanan ini', 'error');
+                closeRatingModal();
+                return;
+            }
+            
+            const order = allOrders.find(o => o.id === currentOrderId);
+            if (!order) return;
+
+            const ratingsToSubmit = [];
+            let allRated = true;
+
+            order.order_items.forEach(item => {
+                const ratingValueInput = document.querySelector(`.rating-value[data-product-id="${item.product_id}"]`);
+                const reviewTextarea = document.querySelector(`.rating-textarea[data-product-id="${item.product_id}"]`);
+                
+                const rating = parseInt(ratingValueInput.value);
+                const review = reviewTextarea.value.trim();
+
+                if (rating === 0) {
+                    allRated = false;
+                }
+
+                ratingsToSubmit.push({
+                    user_id: user.id,
+                    order_id: currentOrderId,
+                    product_id: item.product_id,
+                    rating: rating,
+                    review: review,
+                    created_at: new Date().toISOString()
+                });
+            });
+            
+            if (!allRated) {
+                showToast('Harap berikan rating untuk semua produk', 'error');
+                return;
+            }
+
+            const submitBtn = document.querySelector('.btn-submit-rating');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Mengirim...';
+
+            try {
+                // Insert ratings
+                const { error: insertError } = await supabase
+                    .from('ratings')
+                    .insert(ratingsToSubmit);
+
+                if (insertError) throw insertError;
+                
+                showToast('Penilaian Anda berhasil dikirim!', 'success');
+                closeRatingModal();
+                await loadOrderRatings(user.id);
+                renderOrders();
+                
+            } catch (error) {
+                console.error('Error submitting ratings:', error);
+                showToast('Gagal mengirim penilaian: ' + error.message, 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Kirim Penilaian';
+            }
+        }
+
+        function setupOrdersListeners() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelector('.tab-btn.active').classList.remove('active');
+                    this.classList.add('active');
+                    currentFilter = this.dataset.status;
+                    renderOrders();
+                });
+            });
+        }
+
+        function startAutoRefresh() {
+            setInterval(loadOrders, 30000); // Refresh every 30 seconds
+        }
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', initOrders);
+    </script>
+</body>
+</html>

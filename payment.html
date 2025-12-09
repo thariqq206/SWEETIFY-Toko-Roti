@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pembayaran - Sweetify</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #D2B48C;
+            --primary-dark: #C19A6B;
+            --secondary: #F5DEB3;
+            --success: #28a745;
+            --warning: #ffc107;
+            --text: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #FFF8DC 0%, #F5DEB3 100%);
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-dark);
+        }
+
+        .payment-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+        }
+
+        .success-header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+            animation: scaleIn 0.5s ease;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        .order-number {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .preorder-alert {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .preorder-alert.show {
+            display: block;
+        }
+
+        .preorder-alert-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .preorder-alert-header i {
+            font-size: 24px;
+            color: #ff9800;
+        }
+
+        .preorder-alert-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #856404;
+        }
+
+        .preorder-alert-body {
+            padding-left: 34px;
+            color: #856404;
+        }
+
+        .preorder-date {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preorder-date i {
+            color: #ff9800;
+        }
+
+        .qr-section {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .qr-wrapper {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            display: inline-block;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .qr-code {
+            width: 280px;
+            height: 280px;
+            border: 3px solid #ddd;
+            border-radius: 10px;
+        }
+
+        .total-payment {
+            background: var(--secondary);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+            border: 2px solid var(--primary);
+        }
+
+        .total-amount {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--primary-dark);
+            margin: 10px 0;
+        }
+
+        .instructions {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .instruction-step {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .instruction-step i {
+            font-size: 24px;
+            color: var(--primary);
+            width: 40px;
+        }
+
+        .btn {
+            padding: 18px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary-dark);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary);
+        }
+
+        .hidden { display: none !important; }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #323232;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 9999;
+            display: none;
+        }
+
+        .toast.show { display: flex; align-items: center; gap: 12px; }
+        .toast.success { background: #4CAF50; }
+        .toast.error { background: #f44336; }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .button-group .btn {
+            flex: 1;
+        }
+
+        .payment-actions {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🍰 Sweetify</div>
+    </div>
+
+    <div class="container">
+        <div class="payment-card">
+            <div class="success-header">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2>Pesanan Berhasil Dibuat!</h2>
+                <p style="margin-top: 10px;">Terima kasih telah berbelanja di Sweetify</p>
+                <div class="order-number">
+                    <span style="font-size: 14px;">No. Pesanan:</span><br>
+                    <strong style="font-size: 24px; letter-spacing: 2px;" id="order-number">Loading...</strong>
+                </div>
+            </div>
+
+            <!-- Pre-order Alert -->
+            <div class="preorder-alert" id="preorder-alert">
+                <div class="preorder-alert-header">
+                    <i class="fas fa-calendar-check"></i>
+                    <span class="preorder-alert-title">Pre-Order</span>
+                </div>
+                <div class="preorder-alert-body">
+                    <p>Pesanan ini adalah <strong>Pre-Order</strong>. Produk akan disiapkan untuk tanggal dan waktu yang telah Anda pilih:</p>
+                    <div class="preorder-date">
+                        <i class="fas fa-clock"></i>
+                        <span id="preorder-datetime">-</span>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 14px;">
+                        <i class="fas fa-info-circle"></i> Mohon lakukan pembayaran untuk mengkonfirmasi Pre-Order Anda
+                    </p>
+                </div>
+            </div>
+
+            <h3 style="text-align: center; color: var(--primary-dark); margin-bottom: 20px; font-size: 22px;">
+                <i class="fas fa-qrcode"></i> Silakan Lakukan Pembayaran
+            </h3>
+
+            <div class="qr-section">
+                <div class="qr-wrapper">
+                    <img class="qr-code" src="qris.jpg" alt="QR Code QRIS">
+                </div>
+                <p style="margin-top: 15px; color: #666; font-size: 14px;">
+                    <i class="fas fa-info-circle"></i> Scan QR Code menggunakan aplikasi e-wallet atau mobile banking
+                </p>
+            </div>
+
+            <div class="total-payment">
+                <p style="font-size: 18px; color: #666; font-weight: 600;">Total Pembayaran:</p>
+                <div class="total-amount" id="total-amount">Rp 0</div>
+            </div>
+
+            <div class="instructions">
+                <h4 style="margin-bottom: 15px; color: #2196F3; font-size: 18px;">
+                    <i class="fas fa-info-circle"></i> Cara Pembayaran:
+                </h4>
+                <div class="instruction-step">
+                    <i class="fas fa-mobile-alt"></i>
+                    <span>Buka aplikasi e-wallet atau mobile banking Anda</span>
+                </div>
+                <div class="instruction-step">
+                    <i class="fas fa-camera"></i>
+                    <span>Pilih menu "QRIS" atau "Scan QR"</span>
+                </div>
+                <div class="instruction-step">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Scan QR Code di atas dan konfirmasi pembayaran</span>
+                </div>
+                <div class="instruction-step">
+                    <i class="fas fa-thumbs-up"></i>
+                    <span>Setelah berhasil bayar, klik tombol "Pembayaran Selesai" di bawah</span>
+                </div>
+            </div>
+
+            <div class="payment-actions">
+                <button class="btn btn-primary" onclick="handleConfirmPayment()" id="confirm-btn" type="button">
+                    <i class="fas fa-check-circle"></i> Pembayaran Selesai
+                </button>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="window.location.href='orders.html'" type="button">
+                        <i class="fas fa-list"></i> Lihat Pesanan
+                    </button>
+                    <button class="btn btn-secondary" onclick="window.location.href='index.html'" type="button">
+                        <i class="fas fa-home"></i> Beranda
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Success</span>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ylfyixhkowiukaeunzjo.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlsZnlpeGhrb3dpdWthZXVuempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0NDg4NTEsImV4cCI6MjA4MDAyNDg1MX0.x1bD_-kTTyqNWPzj-llbGPIfgWx4YJVDpqMnD1O5WoU';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentOrder = null;
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('id-ID', options);
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = toast.querySelector('i');
+            document.getElementById('toast-message').textContent = message;
+            
+            if (type === 'error') {
+                toast.className = 'toast show error';
+                icon.className = 'fas fa-exclamation-circle';
+            } else {
+                toast.className = 'toast show success';
+                icon.className = 'fas fa-check-circle';
+            }
+            
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        async function handleConfirmPayment() {
+            if (!currentOrder) {
+                showToast('Data pesanan tidak ditemukan', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('confirm-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+            
+            try {
+                const { error } = await supabase
+                    .from('orders')
+                    .update({ 
+                        status: 'Menunggu Verifikasi',
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', currentOrder.id);
+                
+                if (error) throw error;
+                
+                showToast('Pembayaran berhasil dikonfirmasi! Silakan klik tombol di bawah untuk melanjutkan.', 'success');
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Pembayaran Dikonfirmasi';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Gagal mengkonfirmasi pembayaran', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Pembayaran Selesai';
+            }
+        }
+
+        async function initPayment() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderNumber = urlParams.get('order_number');
+            
+            if (!orderNumber) {
+                showToast('Order tidak ditemukan', 'error');
+                return;
+            }
+            
+            await loadOrder(orderNumber);
+        }
+
+        async function loadOrder(orderNumber) {
+            try {
+                const { data: order, error } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('order_number', orderNumber)
+                    .single();
+                
+                if (error) throw error;
+                
+                currentOrder = order;
+                
+                // Display order details
+                document.getElementById('order-number').textContent = order.order_number;
+                document.getElementById('total-amount').textContent = formatCurrency(order.total_amount);
+                
+                // Show pre-order info if applicable
+                if (order.is_preorder && order.preorder_date) {
+                    const preorderAlert = document.getElementById('preorder-alert');
+                    const preorderDatetime = document.getElementById('preorder-datetime');
+                    
+                    const dateStr = formatDate(order.preorder_date);
+                    const timeStr = order.preorder_time || '';
+                    
+                    preorderDatetime.textContent = `${dateStr}, Pukul ${timeStr}`;
+                    preorderAlert.classList.add('show');
+                }
+                
+                console.log('✅ Order loaded:', {
+                    order_number: order.order_number,
+                    total_amount: order.total_amount,
+                    is_preorder: order.is_preorder,
+                    preorder_date: order.preorder_date,
+                    preorder_time: order.preorder_time
+                });
+                
+            } catch (error) {
+                console.error('Error loading order:', error);
+                showToast('Gagal memuat pesanan', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initPayment);
+    </script>
+</body>
+</html>
